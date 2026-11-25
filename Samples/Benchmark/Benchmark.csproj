@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>BenchmarkSample</RootNamespace>
+    <AssemblyName>BenchmarkSample</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.csproj" />
+    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Content\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

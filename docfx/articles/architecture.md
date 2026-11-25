@@ -1,0 +1,139 @@
+# Architecture
+
+This page describes the pipeline from font bytes to `SpriteBatch` quads, and the invariants that keep
+the on-demand atlas consistent.
+
+## Object graph
+
+```
+FontSystem ── owns ──> FontSource[] (fallback order)
+    │                        │
+    │                        └── StbTrueTypeNext.STBFont (parsed tables, read-only)
+    │
+    ├── owns ──> TextureAtlas (shared pages, lock-protected)
+    │                 ├── ShelfPacker per page
+    │                 └── Texture2D per page
+    │
+    └── caches ──> DynamicSpriteFont per float size
+                        ├── FontSize, Ascent, Descent, LineGap, LineSpacing
+                        └── GlyphCache
+                              ├── Dictionary<codepoint, GlyphMetrics>
+                              ├── Dictionary<codepoint, RenderedGlyph>
+                              └── Dictionary<kerning pair, float>
+```
+
+## Loading
+
+`FontSystem.AddFont` validates the bytes with `STBFontCollection`, resolves the requested face offset,
+constructs an `STBFont`, and reads vertical metrics and a display name. The source array is kept alive
+by the `FontSource`; StbTrueTypeNext reads the bytes in place.
+
+`FontSystem.GetFont(size)` creates one `DynamicSpriteFont` per exact float size and caches it. All
+callers of the same size share one glyph cache and atlas entries.
+
+## On-demand glyph pipeline
+
+```
+DrawString/PreloadGlyphs
+        │
+        ▼
+GlyphCache.GetRenderedGlyph(codepoint)
+        │
+        ├── GetMetrics: resolve fallback source + glyph index, cache advance
+        │
+        ├── STBFont.CreateGlyphBitmap(index, scale, scale, 0, 0, V2)
+        │
+        ├── TextureAtlas.Add(coverage, width, height)
+        │       ├── pack a padded slot (new page if necessary)
+        │       ├── convert 8-bit alpha to premultiplied RGBA
+        │       ├── extrude edges into padding
+        │       └── Texture2D.SetData(slot rectangle)
+        │
+        └── cache RenderedGlyph { texture index, source rectangle, offsets }
+```
+
+`MeasureString` stops at `GetMetrics`; it never calls `CreateGlyphBitmap` or the atlas. This is what
+makes a measurement-only `FontSystem` possible and keeps `GlyphCount` at zero until drawing.
+
+## Text layout
+
+For each code point:
+
+1. Resolve the source and glyph index through the fallback chain.
+2. Look up kerning for the previous glyph **if it came from the same source**.
+3. Advance the pen by `advance * scale + kerning`.
+4. Place the glyph bitmap at `pen + bitmap.XOffset`, `baseline + bitmap.YOffset`.
+
+Font units are converted with `ScaleForMappingEmToPixels(FontSize)`, so `FontSize` is an em size.
+Vertical metrics give `Ascent`, `Descent` (negative), and `LineGap`; the default line spacing is
+`Ascent - Descent + LineGap`.
+
+The first baseline is `position.Y + Ascent`; new lines add `LineSpacing`. StbTrueTypeNext bitmap Y
+offsets are baseline-relative with positive Y downward, so no sign flip is needed.
+
+## Drawing transform
+
+For each glyph, the library computes the glyph's top-left in layout space, then applies:
+
+```
+local  = (glyphTopLeft - origin) * scale
+screen = position + Rotate(local, rotation)
+```
+
+It then calls `SpriteBatch.Draw` with the glyph's atlas source rectangle, `origin = Vector2.Zero`,
+the requested rotation/scale/effects, and the requested color. This reproduces whole-text rotation and
+scaling while letting `SpriteBatch` batch glyphs by texture.
+
+Horizontal/vertical flips mirror the whole block around `MeasureString`'s size before the transform.
+`SpriteEffects` is passed to `SpriteBatch.Draw` so each glyph's texture is flipped to match.
+
+## Atlas details
+
+- **Packing.** A shelf packer places glyphs left to right, starting a new row when the current row is
+  too narrow and a new page when the page is full. Packing is deterministic.
+- **Padding.** Each glyph occupies `width + 2 * GlyphPadding` by `height + 2 * GlyphPadding`. The
+  padding is filled with the nearest edge pixel; the source rectangle returned to the renderer covers
+  only the glyph itself.
+- **Premultiplied alpha.** By default a coverage value `a` becomes RGBA `(a, a, a, a)`. This matches
+  `BlendState.AlphaBlend`. Set `PremultiplyAlpha = false` for non-premultiplied blending.
+- **Pages.** Pages are created lazily. `MaxTextureCount` bounds growth and produces a descriptive
+  exception when exceeded. A glyph larger than a page also throws a descriptive exception.
+- **Clearing.** New pages are cleared once so untouched pixels are transparent.
+
+## Lifetime, disposal, and threading
+
+- `FontSystem.Dispose` disposes every atlas page and clears cached fonts. It is idempotent. Further
+  calls on the system throw `ObjectDisposedException`.
+- `TextureAtlas` guards mutations with a lock because different glyph caches may upload concurrently.
+- `FontSystem`, `FontSource`, `DynamicSpriteFont`, and `GlyphCache` are not thread-safe. MonoGame
+  graphics devices are not thread-safe either.
+- Existing font instances keep a snapshot of the fallback list. `AddFont` clears the size cache, so
+  future `GetFont` calls see the new chain.
+
+## Performance notes
+
+The common `DrawString(font, text, position, color)` call takes a dedicated fast path in
+`DynamicSpriteFont.DrawText`:
+
+- rotation, origin, scale, effects, and layer depth are checked once per call;
+- each glyph is submitted with the four-argument `SpriteBatch.Draw`;
+- the current atlas texture is cached across glyphs instead of being looked up per glyph;
+- ASCII metrics, rendered glyphs, and kerning pairs use fixed arrays, while non-ASCII uses
+  dictionaries;
+- the ASCII kerning table is a lazily filled 128×128 array (`NaN` means not yet computed).
+
+All other combinations (rotation, origin, scale, flips, layer depth) use the general path with
+per-glyph transforms. The `Samples/Benchmark` project measures this path against a runtime-baked
+MonoGame `SpriteFont`; rerun it after changing layout or draw code.
+
+## Testing seam
+
+`IGlyphAtlas` abstracts texture upload. Unit tests use a recording implementation to assert that:
+
+- measurement does not rasterize,
+- each unique code point is rasterized once,
+- repeated preloads are no-ops,
+- whitespace does not allocate atlas entries,
+- bitmap coverage is non-empty.
+
+The `HelloWorld --screenshot` sample is the end-to-end visual check with a real graphics device.

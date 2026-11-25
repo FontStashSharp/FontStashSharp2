@@ -1,0 +1,56 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "src": "../FontStashSharp2",
+          "files": [
+            "FontStashSharp2.csproj"
+          ]
+        }
+      ],
+      "dest": "api",
+      "includePrivateMembers": false,
+      "disableGitFeatures": true,
+      "properties": {
+        "TargetFramework": "net8.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "index.md",
+          "toc.yml",
+          "articles/**/*.md"
+        ]
+      },
+      {
+        "files": [
+          "api/**/*.yml",
+          "api/**/*.md"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ]
+      }
+    ],
+    "dest": "_site",
+    "globalMetadata": {
+      "_appTitle": "FontStashSharp2",
+      "_appFooter": "FontStashSharp2 - on-demand TrueType text rendering for MonoGame",
+      "_disableContribution": true,
+      "_disableGitFeatures": true
+    },
+    "template": [
+      "default",
+      "modern"
+    ],
+    "outputHtml": true
+  }
+}

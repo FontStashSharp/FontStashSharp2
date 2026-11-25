@@ -1,0 +1,7 @@
+* text=auto eol=lf
+
+*.ttf binary
+*.otf binary
+*.ttc binary
+*.png binary
+*.nupkg binary
