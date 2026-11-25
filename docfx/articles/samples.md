@@ -1,6 +1,6 @@
 # Samples
 
-The repository contains three samples. The windowed samples also support screenshot modes that double as
+The repository contains four samples. The windowed samples also support screenshot modes that double as
 integration tests.
 
 ## HelloWorld (DesktopGL)
@@ -9,8 +9,9 @@ A windowed MonoGame sample showing:
 
 - one `FontSystem` shared by many font sizes,
 - `MeasureString`-based right alignment and centered rotation,
+- 2× supersampled glyphs for sharper scaled text,
 - uniform scaling and horizontal flipping,
-- live atlas page and rasterized-glyph counts,
+- live atlas page, rasterized-glyph, and supersampling counts,
 - on-demand glyph caching during draw.
 
 ![Hello World sample](../images/hello-world.png)
@@ -32,6 +33,26 @@ dotnet run --project Samples/HelloWorld -- --screenshot out.png
 This exercises the full path on a real GPU: font parsing, glyph rasterization, atlas upload, padding,
 layout, rotation, scaling, flipping, and `SpriteBatch` drawing. It is useful for visual regression
 checks on a machine with a display.
+
+## Supersampling (DesktopGL)
+
+A dedicated comparison of glyph-atlas resolutions:
+
+- rows: 1×, 2× (default), and 4× supersampling;
+- columns: 1.0×, 1.5×, 2.0×, and 3.0× draw scale;
+- the same 24 px font, text, and colors in every cell;
+- live atlas page and glyph counts per factor.
+
+![Supersampling comparison](../images/supersampling.png)
+
+```bash
+dotnet run --project Samples/Supersampling
+dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
+```
+
+The 1× row shows magnification blur at 3× display scale. The 4× row stays sharp at 3× because it is
+still being downsampled. The 2× row is the default tradeoff. See the
+[Supersampling article](supersampling.md) for the full explanation.
 
 ## MeasureText (console)
 
@@ -56,8 +77,10 @@ This sample is a convenient smoke test for font loading and layout in CI environ
 
 `Samples/Benchmark` compares steady-state `SpriteBatch.DrawString` throughput between
 FontStashSharp2 and a regular MonoGame `SpriteFont`. The SpriteFont is built at runtime from the same
-TTF and pixel size, so both renderers start with a pre-baked atlas. Warmup frames exclude first-use
-glyph rasterization and JIT. The sample requires a graphics device/display.
+TTF and pixel size, so both renderers start with a pre-baked atlas. FontStashSharp2 uses
+`SupersamplingFactor = 1` here so both paths draw 1:1 atlases; the HelloWorld sample demonstrates the
+default 2× mode. Warmup frames exclude first-use glyph rasterization and JIT. The sample requires a
+graphics device/display.
 
 ```bash
 dotnet run --project Samples/Benchmark

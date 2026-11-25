@@ -80,6 +80,7 @@ internal sealed class BenchmarkGame : Game
 				TextureWidth = 1024,
 				TextureHeight = 1024,
 				GlyphPadding = 1,
+				SupersamplingFactor = 1f,
 				UseKerning = !_options.DisableKerning,
 			});
 
@@ -266,7 +267,7 @@ internal sealed class BenchmarkGame : Game
 		Console.WriteLine();
 		Console.WriteLine(string.Create(
 			CultureInfo.InvariantCulture,
-			$"Font: ABeeZee, {_options.FontSize:0.##}px; kerning {(_options.DisableKerning ? "off" : "on")}; {_options.Texts} DrawString calls/frame; {textLength} chars/string."));
+			$"Font: ABeeZee, {_options.FontSize:0.##}px; kerning {(_options.DisableKerning ? "off" : "on")}; supersampling 1x; {_options.Texts} DrawString calls/frame; {textLength} chars/string."));
 		Console.WriteLine(FormattableString.Invariant(
 			$"Frames measured: {_options.Rounds * _options.Iterations} per mode/target; warmup: {_options.WarmupFrames}."));
 		Console.WriteLine();
@@ -310,7 +311,7 @@ internal sealed class BenchmarkGame : Game
 			body,
 			string.Create(
 				CultureInfo.InvariantCulture,
-				$"{_options.FontSize:0.##}px ABeeZee  |  kerning {(_options.DisableKerning ? "off" : "on")}  |  {_options.Texts} strings/frame  |  {SampleText.Length} chars/string  |  {_options.Rounds} rounds x {_options.Iterations} frames"),
+				$"{_options.FontSize:0.##}px ABeeZee  |  kerning {(_options.DisableKerning ? "off" : "on")}  |  supersampling 1x  |  {_options.Texts} strings/frame  |  {SampleText.Length} chars/string  |  {_options.Rounds} rounds x {_options.Iterations} frames"),
 			new Vector2(58f, 80f),
 			Muted);
 		batch.Draw(_pixel, new Rectangle(56, 112, Width - 112, 1), Line);
@@ -382,6 +383,7 @@ internal sealed class BenchmarkGame : Game
 		batch.DrawString(
 			body,
 			"Both engines parse the same TTF at the same pixel size and use a pre-baked atlas; only DrawString is timed.\n" +
+			"FontStashSharp2 supersampling is set to 1x so both paths draw 1:1 glyph atlases; use the HelloWorld sample for 2x quality.\n" +
 			"The 64x64 target isolates SpriteBatch submission. The 1280x720 target includes GPU fill/overdraw.\n" +
 			"Warmup frames exclude first-use glyph rasterization, JIT, and SpriteBatch growth. Vsync is disabled.\n" +
 			kerningNote,

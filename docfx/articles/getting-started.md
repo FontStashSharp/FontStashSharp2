@@ -41,6 +41,7 @@ protected override void LoadContent()
         TextureWidth = 1024,
         TextureHeight = 1024,
         GlyphPadding = 1,
+        SupersamplingFactor = 2f,
         UseKerning = true,
     });
 
@@ -185,6 +186,7 @@ protected override void UnloadContent()
 | `TextureHeight` | 1024 | Height of each atlas page. |
 | `MaxTextureCount` | 8 | Maximum number of pages before adding a glyph throws. |
 | `GlyphPadding` | 1 | Transparent/extruded border around each glyph. |
+| `SupersamplingFactor` | 2 | Glyphs rasterize at `FontSize * factor`; atlas memory grows ~factor². |
 | `UseKerning` | `true` | Apply kerning pairs. |
 | `PremultiplyAlpha` | `true` | Store RGB = alpha in the atlas (matches `BlendState.AlphaBlend`). |
 
@@ -196,8 +198,12 @@ afterwards.
 - `FontSize` is the em size in pixels.
 - `\n` and `\r\n` break lines. Tab advances by one space.
 - `SpriteEffects.FlipHorizontally` / `FlipVertically` mirror the whole text block.
-- Glyphs are rasterized at the requested `FontSize`; scaling up a smaller size in `SpriteBatch` will
-  look soft. Request the intended size or preload a larger one.
+- Glyphs are rasterized at `FontSize * SupersamplingFactor` (default 2×) and drawn at the inverse
+  scale. This keeps text sharp up to roughly the configured factor; raise it for extreme zoom or use a
+  larger font size. Set `SupersamplingFactor = 1` to disable the extra atlas resolution.
+- Supersampling increases atlas memory roughly quadratically. Use `SamplerState.LinearClamp` so the
+  downscale is filtered; point sampling will alias. See [Supersampling](supersampling.md) for the full
+  explanation and factor guidance.
 - Bitmap fonts are not supported; a scalable TTF/OTF outline is required.
 - Text colors should be premultiplied when using the default `BlendState.AlphaBlend`. Opaque colors
   such as `Color.White` and `Color.Red` are already premultiplied.

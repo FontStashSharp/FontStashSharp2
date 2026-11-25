@@ -64,6 +64,7 @@ public sealed class HelloWorldGame : Game
 				TextureWidth = 1024,
 				TextureHeight = 1024,
 				GlyphPadding = 1,
+				SupersamplingFactor = 2f,
 				UseKerning = true,
 			});
 
@@ -249,7 +250,7 @@ public sealed class HelloWorldGame : Game
 
 		var status = string.Create(
 			CultureInfo.InvariantCulture,
-			$"Atlas pages: {_fontSystem.TextureCount}   |   Rasterized glyphs: {glyphs}   |   Press Esc to exit   |   --screenshot <file.png>");
+			$"Atlas pages: {_fontSystem.TextureCount}   |   Rasterized glyphs: {glyphs}   |   Supersampling: {title.SupersamplingFactor:0.#}x   |   Press Esc to exit   |   --screenshot <file.png>");
 
 		batch.DrawString(body, status, new Vector2(56f, 616f), Muted);
 

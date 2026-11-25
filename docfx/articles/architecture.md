@@ -41,7 +41,7 @@ GlyphCache.GetRenderedGlyph(codepoint)
         │
         ├── GetMetrics: resolve fallback source + glyph index, cache advance
         │
-        ├── STBFont.CreateGlyphBitmap(index, scale, scale, 0, 0, V2)
+        ├── STBFont.CreateGlyphBitmap(index, scale * SupersamplingFactor, ...)
         │
         ├── TextureAtlas.Add(coverage, width, height)
         │       ├── pack a padded slot (new page if necessary)
@@ -62,11 +62,17 @@ For each code point:
 1. Resolve the source and glyph index through the fallback chain.
 2. Look up kerning for the previous glyph **if it came from the same source**.
 3. Advance the pen by `advance * scale + kerning`.
-4. Place the glyph bitmap at `pen + bitmap.XOffset`, `baseline + bitmap.YOffset`.
+4. Place the glyph bitmap at `pen + (bitmap.XOffset / SupersamplingFactor)`, and
+   `baseline + (bitmap.YOffset / SupersamplingFactor)`.
 
 Font units are converted with `ScaleForMappingEmToPixels(FontSize)`, so `FontSize` is an em size.
 Vertical metrics give `Ascent`, `Descent` (negative), and `LineGap`; the default line spacing is
 `Ascent - Descent + LineGap`.
+
+Glyph bitmaps are rasterized at `FontSize * SupersamplingFactor`; offsets are divided back into
+logical layout pixels so advances, kerning, ascent, and line spacing remain based on the nominal
+`FontSize`. This is what makes scaled text sharper without changing layout. See
+[Supersampling](supersampling.md) for the quality/memory tradeoffs.
 
 The first baseline is `position.Y + Ascent`; new lines add `LineSpacing`. StbTrueTypeNext bitmap Y
 offsets are baseline-relative with positive Y downward, so no sign flip is needed.
@@ -81,19 +87,24 @@ screen = position + Rotate(local, rotation)
 ```
 
 It then calls `SpriteBatch.Draw` with the glyph's atlas source rectangle, `origin = Vector2.Zero`,
-the requested rotation/scale/effects, and the requested color. This reproduces whole-text rotation and
-scaling while letting `SpriteBatch` batch glyphs by texture.
+rotation/effects, and a scale of `requestedScale / SupersamplingFactor`. The source rectangle holds
+the higher-resolution bitmap, so the draw ends up at the logical size while retaining the extra
+detail. This reproduces whole-text rotation and scaling while letting `SpriteBatch` batch glyphs by
+texture.
 
 Horizontal/vertical flips mirror the whole block around `MeasureString`'s size before the transform.
-`SpriteEffects` is passed to `SpriteBatch.Draw` so each glyph's texture is flipped to match.
+The flip math uses logical glyph size (`source width / SupersamplingFactor`). `SpriteEffects` is
+passed to `SpriteBatch.Draw` so each glyph's texture is flipped to match.
 
 ## Atlas details
 
 - **Packing.** A shelf packer places glyphs left to right, starting a new row when the current row is
   too narrow and a new page when the page is full. Packing is deterministic.
-- **Padding.** Each glyph occupies `width + 2 * GlyphPadding` by `height + 2 * GlyphPadding`. The
-  padding is filled with the nearest edge pixel; the source rectangle returned to the renderer covers
-  only the glyph itself.
+- **Padding.** Each glyph occupies `width + 2 * GlyphPadding` by `height + 2 * GlyphPadding` in
+  physical pixels. The padding is filled with the nearest edge pixel; the source rectangle returned
+  to the renderer covers only the glyph itself.
+- **Supersampling.** Glyphs are rasterized at `FontSize * SupersamplingFactor`; atlas usage therefore
+  grows roughly with the square of the factor.
 - **Premultiplied alpha.** By default a coverage value `a` becomes RGBA `(a, a, a, a)`. This matches
   `BlendState.AlphaBlend`. Set `PremultiplyAlpha = false` for non-premultiplied blending.
 - **Pages.** Pages are created lazily. `MaxTextureCount` bounds growth and produces a descriptive
@@ -116,7 +127,8 @@ The common `DrawString(font, text, position, color)` call takes a dedicated fast
 `DynamicSpriteFont.DrawText`:
 
 - rotation, origin, scale, effects, and layer depth are checked once per call;
-- each glyph is submitted with the four-argument `SpriteBatch.Draw`;
+- each glyph is submitted with the four-argument `SpriteBatch.Draw` when `SupersamplingFactor` is 1,
+  or one inverse-scaled draw otherwise;
 - the current atlas texture is cached across glyphs instead of being looked up per glyph;
 - ASCII metrics, rendered glyphs, and kerning pairs use fixed arrays, while non-ASCII uses
   dictionaries;

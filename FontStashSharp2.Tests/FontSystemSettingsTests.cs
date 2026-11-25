@@ -11,6 +11,7 @@ public sealed class FontSystemSettingsTests
 		Assert.Equal(1024, settings.TextureHeight);
 		Assert.Equal(8, settings.MaxTextureCount);
 		Assert.Equal(1, settings.GlyphPadding);
+		Assert.Equal(2f, settings.SupersamplingFactor);
 		Assert.True(settings.UseKerning);
 		Assert.True(settings.PremultiplyAlpha);
 	}
@@ -53,17 +54,42 @@ public sealed class FontSystemSettingsTests
 		Assert.Throws<ArgumentOutOfRangeException>(() => settings.GlyphPadding = -1);
 	}
 
+	[Theory]
+	[InlineData(0f)]
+	[InlineData(0.5f)]
+	[InlineData(-1f)]
+	public void SupersamplingFactor_RejectsValuesBelowOne(float value)
+	{
+		var settings = new FontSystemSettings();
+
+		Assert.Throws<ArgumentOutOfRangeException>(() => settings.SupersamplingFactor = value);
+	}
+
+	[Theory]
+	[InlineData(float.NaN)]
+	[InlineData(float.PositiveInfinity)]
+	[InlineData(float.NegativeInfinity)]
+	public void SupersamplingFactor_RejectsNonFiniteValues(float value)
+	{
+		var settings = new FontSystemSettings();
+
+		Assert.Throws<ArgumentOutOfRangeException>(() => settings.SupersamplingFactor = value);
+	}
+
 	[Fact]
 	public void Settings_AreCopiedByFontSystem()
 	{
-		var settings = new FontSystemSettings { GlyphPadding = 3 };
+		var settings = new FontSystemSettings { GlyphPadding = 3, SupersamplingFactor = 1.5f };
 		var atlas = new RecordingGlyphAtlas();
 		using var fontSystem = TestFonts.CreateFontSystem(atlas, settings);
 
 		settings.GlyphPadding = 9;
+		settings.SupersamplingFactor = 3f;
 
 		// The system holds its own validated copy; the public settings object can be reused safely.
 		Assert.Equal(3, fontSystem.Settings.GlyphPadding);
+		Assert.Equal(1.5f, fontSystem.Settings.SupersamplingFactor);
 		Assert.Equal(9, settings.GlyphPadding);
+		Assert.Equal(3f, settings.SupersamplingFactor);
 	}
 }

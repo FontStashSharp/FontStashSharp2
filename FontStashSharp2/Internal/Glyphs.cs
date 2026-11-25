@@ -27,8 +27,8 @@ internal readonly struct RenderedGlyph
 		GlyphMetrics metrics,
 		int textureIndex,
 		Rectangle sourceRectangle,
-		int offsetX,
-		int offsetY)
+		float offsetX,
+		float offsetY)
 	{
 		Metrics = metrics;
 		TextureIndex = textureIndex;
@@ -44,11 +44,11 @@ internal readonly struct RenderedGlyph
 
 	public Rectangle SourceRectangle { get; }
 
-	/// <summary>Horizontal bitmap offset from the pen position, in pixels.</summary>
-	public int OffsetX { get; }
+	/// <summary>Horizontal bitmap offset from the pen position, in logical pixels.</summary>
+	public float OffsetX { get; }
 
-	/// <summary>Vertical bitmap offset from the baseline, in pixels (negative is above the baseline).</summary>
-	public int OffsetY { get; }
+	/// <summary>Vertical bitmap offset from the baseline, in logical pixels (negative is above the baseline).</summary>
+	public float OffsetY { get; }
 
 	public bool HasTexture => TextureIndex >= 0;
 }

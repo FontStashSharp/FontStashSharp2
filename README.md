@@ -18,6 +18,8 @@ extension methods on `SpriteBatch` whose signatures mirror the built-in `SpriteF
   `SpriteFont` parameter list, including rotation, origin, scale, effects, and layer depth.
 - **Real metrics.** Font units, scaling, kerning (GPOS/kern via StbTrueTypeNext), line spacing, and
   `MeasureString` are handled by the library.
+- **Sharper scaling.** Glyphs are supersampled 2× by default and drawn at the inverse scale, with a
+  configurable factor for heavier zoom.
 
 ## Quick start
 
@@ -49,6 +51,7 @@ public sealed class MyGame : Game
         {
             TextureWidth = 1024,
             TextureHeight = 1024,
+            SupersamplingFactor = 2f, // default; use 1 to disable
         });
 
         _fonts.AddFont(File.ReadAllBytes("Content/MyFont.ttf"));
@@ -105,9 +108,32 @@ dotnet run --project Samples/Benchmark -- --benchmark --texts 256 --font-size 24
 dotnet run --project Samples/Benchmark -- --screenshot benchmark.png
 ```
 
-The benchmark requires a graphics device/display. Use `--rounds`, `--warmup`, `--no-kerning`, and `--help` for more control. Ratios greater than 1
+The benchmark requires a graphics device/display. Use `--rounds`, `--warmup`, `--no-kerning`, and `--help` for more control. The benchmark sets
+supersampling to 1× so both engines draw 1:1 atlases. Ratios greater than 1
 mean FontStashSharp2 is faster. Numbers vary by CPU/GPU; the sample is intended for comparisons on
 the same machine.
+
+## Supersampled text scaling
+
+Glyphs are rasterized at `FontSize * SupersamplingFactor` and drawn at the inverse scale, while all
+layout metrics (advances, kerning, ascent, line spacing) stay at the nominal `FontSize`. The default
+factor is **2×**, so text scaled up to roughly 2× remains sharp without extra draw calls.
+
+```csharp
+var fonts = new FontSystem(GraphicsDevice, new FontSystemSettings
+{
+    SupersamplingFactor = 2f, // 1 = off, 3-4 for heavy camera zoom
+});
+```
+
+- Atlas memory grows roughly with the square of the factor.
+- Set it to `1` to rasterize at the nominal size.
+- Use `SamplerState.LinearClamp` (the default) when drawing; point sampling will alias the downscale.
+- The factor is fixed per `FontSystem`; scaling beyond it still softens, so increase it or request a
+  larger font size for extreme zoom.
+
+See the [supersampling article](docfx/articles/supersampling.md) for the full explanation, tradeoffs,
+and the dedicated `Samples/Supersampling` comparison.
 
 ## Measurement without a graphics device
 
@@ -165,6 +191,8 @@ Run the samples:
 dotnet run --project Samples/HelloWorld
 dotnet run --project Samples/MeasureText
 dotnet run --project Samples/MeasureText -- 48 "Custom text"
+dotnet run --project Samples/Supersampling
+dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
 dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
 ```
@@ -189,6 +217,7 @@ FontStashSharp2/           Library (net8.0)
 FontStashSharp2.Tests/     xUnit tests and test font (ABeeZee)
 Samples/HelloWorld/        DesktopGL SpriteBatch sample (supports --screenshot)
 Samples/MeasureText/       Console measurement sample (no graphics device)
+Samples/Supersampling/     1x/2x/4x atlas comparison at multiple draw scales
 Samples/Benchmark/         DrawString benchmark vs runtime-baked SpriteFont
 docfx/                     docfx configuration and articles
 ```
@@ -200,8 +229,9 @@ docfx/                     docfx configuration and articles
 - `\n` and `\r\n` start new lines. Tabs advance like a single space. Other control characters are
   resolved through the font fallback chain.
 - Flips mirror the whole text block; rotation, origin, and scale behave like `SpriteFont` drawing.
-- Glyphs are rasterized at `FontSize`. For large on-screen sizes, request a larger font (or preload a
-  larger size) instead of scaling a small bitmap, which will look soft.
+- Glyphs are rasterized at `FontSize * SupersamplingFactor` (default 2×) and drawn at the inverse
+  scale. This keeps moderate scaling sharp; scaling beyond the factor still softens, so raise the
+  factor or request a larger font size for extreme zoom. Set `SupersamplingFactor = 1` to disable.
 - No complex text shaping: Arabic/Indic joining, bidirectional layout, ligature substitution, color
   emoji, and variable-font axes are not implemented. Simple fallback by code point is supported.
 - The atlas is premultiplied alpha by default, matching `BlendState.AlphaBlend`. Pass premultiplied

@@ -93,6 +93,8 @@ public sealed class FontSystem : IDisposable
 
 	internal bool UseKerning => _settings.UseKerning;
 
+	internal float SupersamplingFactor => _settings.SupersamplingFactor;
+
 	internal IGlyphAtlas GetAtlasOrThrow()
 	{
 		ThrowIfDisposed();

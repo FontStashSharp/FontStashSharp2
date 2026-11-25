@@ -11,7 +11,8 @@ namespace FontStashSharp2.Internal;
 /// <remarks>
 /// ASCII code points are stored in small arrays because they dominate typical UI text. Non-ASCII
 /// code points use dictionaries. The ASCII kerning table is a 128x128 row-major array initialized
-/// to <see cref="float.NaN"/>; pairs are computed lazily.
+/// to <see cref="float.NaN"/>; pairs are computed lazily. Bitmaps are rasterized at
+/// <c>fontScale * SupersamplingFactor</c>; their offsets are converted back to logical pixels.
 /// </remarks>
 internal sealed class GlyphCache
 {
@@ -21,6 +22,7 @@ internal sealed class GlyphCache
 	private readonly FontSource[] _sources;
 	private readonly float[] _scales;
 	private readonly bool _useKerning;
+	private readonly float _supersamplingFactor;
 	private readonly Dictionary<int, GlyphMetrics> _metrics = new();
 	private readonly Dictionary<int, RenderedGlyph> _rendered = new();
 	private readonly Dictionary<long, float> _kernings = new();
@@ -32,7 +34,7 @@ internal sealed class GlyphCache
 	private int _metricsCount;
 	private int _rasterizedGlyphCount;
 
-	public GlyphCache(FontSource[] sources, float[] scales, bool useKerning)
+	public GlyphCache(FontSource[] sources, float[] scales, bool useKerning, float supersamplingFactor)
 	{
 		ArgumentNullException.ThrowIfNull(sources);
 		ArgumentNullException.ThrowIfNull(scales);
@@ -47,9 +49,18 @@ internal sealed class GlyphCache
 			throw new ArgumentException("A scale is required for every font source.", nameof(scales));
 		}
 
+		if (!float.IsFinite(supersamplingFactor) || supersamplingFactor < 1f)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(supersamplingFactor),
+				supersamplingFactor,
+				"Supersampling factor must be finite and at least 1.0.");
+		}
+
 		_sources = sources;
 		_scales = scales;
 		_useKerning = useKerning;
+		_supersamplingFactor = supersamplingFactor;
 
 		if (useKerning)
 		{
@@ -121,12 +132,13 @@ internal sealed class GlyphCache
 		var metrics = GetMetrics(codepoint);
 		var source = _sources[metrics.SourceIndex];
 		var scale = _scales[metrics.SourceIndex];
+		var rasterScale = scale * _supersamplingFactor;
 
-		var bitmap = scale > 0f && float.IsFinite(scale)
+		var bitmap = rasterScale > 0f && float.IsFinite(rasterScale)
 			? source.Font.CreateGlyphBitmap(
 				metrics.GlyphIndex,
-				scale,
-				scale,
+				rasterScale,
+				rasterScale,
 				0f,
 				0f,
 				STBRasterizerVersion.V2)
@@ -150,8 +162,8 @@ internal sealed class GlyphCache
 				metrics,
 				placement.TextureIndex,
 				placement.Bounds,
-				bitmap.XOffset,
-				bitmap.YOffset);
+				bitmap.XOffset / _supersamplingFactor,
+				bitmap.YOffset / _supersamplingFactor);
 			_rasterizedGlyphCount++;
 		}
 

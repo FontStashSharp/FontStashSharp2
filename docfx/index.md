@@ -33,6 +33,7 @@ spriteBatch.End();
 ## Start here
 
 - [Getting started](articles/getting-started.md)
+- [Supersampling](articles/supersampling.md)
 - [Architecture and invariants](articles/architecture.md)
 - [Samples](articles/samples.md)
 - [API reference](xref:FontStashSharp2)

@@ -14,6 +14,7 @@ public sealed class FontSystemSettings
 	private int _textureHeight = 1024;
 	private int _maxTextureCount = 8;
 	private int _glyphPadding = 1;
+	private float _supersamplingFactor = 2f;
 
 	/// <summary>
 	/// Gets or sets the width, in pixels, of a single atlas page. Defaults to 1024.
@@ -93,6 +94,32 @@ public sealed class FontSystemSettings
 	}
 
 	/// <summary>
+	/// Gets or sets the resolution multiplier used when rasterizing glyphs. Defaults to 2.
+	/// </summary>
+	/// <remarks>
+	/// A glyph is rasterized at <c>FontSize * SupersamplingFactor</c> and drawn at the inverse scale.
+	/// This keeps scaled text sharp while preserving the nominal font metrics. Values below 1 are
+	/// rejected; use 1 to disable supersampling. Atlas memory grows roughly with the square of this
+	/// factor, so increase it only when text is drawn at a larger scale.
+	/// </remarks>
+	public float SupersamplingFactor
+	{
+		get => _supersamplingFactor;
+		set
+		{
+			if (!float.IsFinite(value) || value < 1f)
+			{
+				throw new ArgumentOutOfRangeException(
+					nameof(value),
+					value,
+					"Supersampling factor must be finite and at least 1.0.");
+			}
+
+			_supersamplingFactor = value;
+		}
+	}
+
+	/// <summary>
 	/// Gets or sets whether kerning pairs from the font are applied. Defaults to <see langword="true"/>.
 	/// </summary>
 	public bool UseKerning { get; set; } = true;
@@ -115,6 +142,7 @@ public sealed class FontSystemSettings
 			TextureHeight = _textureHeight,
 			MaxTextureCount = _maxTextureCount,
 			GlyphPadding = _glyphPadding,
+			SupersamplingFactor = _supersamplingFactor,
 			UseKerning = UseKerning,
 			PremultiplyAlpha = PremultiplyAlpha,
 		};
@@ -140,6 +168,14 @@ public sealed class FontSystemSettings
 		if (_glyphPadding < 0)
 		{
 			throw new ArgumentOutOfRangeException(nameof(GlyphPadding), _glyphPadding, "Glyph padding cannot be negative.");
+		}
+
+		if (!float.IsFinite(_supersamplingFactor) || _supersamplingFactor < 1f)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(SupersamplingFactor),
+				_supersamplingFactor,
+				"Supersampling factor must be finite and at least 1.0.");
 		}
 	}
 }

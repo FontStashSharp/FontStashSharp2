@@ -16,6 +16,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 {
 	private readonly FontSystem _fontSystem;
 	private readonly GlyphCache _glyphCache;
+	private readonly float _inverseSupersamplingFactor;
 	private float _lineSpacing;
 
 	internal DynamicSpriteFont(FontSystem fontSystem, FontSource[] sources, float size)
@@ -48,7 +49,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			_lineSpacing = size * 1.2f;
 		}
 
-		_glyphCache = new GlyphCache(sources, scales, fontSystem.UseKerning);
+		SupersamplingFactor = fontSystem.SupersamplingFactor;
+		_inverseSupersamplingFactor = 1f / SupersamplingFactor;
+		_glyphCache = new GlyphCache(sources, scales, fontSystem.UseKerning, SupersamplingFactor);
 	}
 
 	/// <summary>
@@ -76,6 +79,15 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			_lineSpacing = value;
 		}
 	}
+
+	/// <summary>
+	/// Gets the resolution multiplier used to rasterize glyphs.
+	/// </summary>
+	/// <remarks>
+	/// Glyph bitmaps are rasterized at <c>FontSize * SupersamplingFactor</c> and drawn scaled down by
+	/// the inverse factor. A value of 1 disables supersampling.
+	/// </remarks>
+	public float SupersamplingFactor { get; }
 
 	/// <summary>
 	/// Gets the scaled ascent above the baseline, in pixels.
@@ -269,6 +281,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		var previous = default(GlyphMetrics);
 		Texture2D? texture = null;
 		var textureIndex = -1;
+		var drawScale = new Vector2(
+			scale.X * _inverseSupersamplingFactor,
+			scale.Y * _inverseSupersamplingFactor);
 
 		for (var i = 0; i < text.Length;)
 		{
@@ -301,8 +316,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			{
 				var glyphX = penX + glyph.OffsetX;
 				var glyphY = lineTop + Ascent + glyph.OffsetY;
-				var glyphWidth = glyph.SourceRectangle.Width;
-				var glyphHeight = glyph.SourceRectangle.Height;
+				var glyphWidth = glyph.SourceRectangle.Width * _inverseSupersamplingFactor;
+				var glyphHeight = glyph.SourceRectangle.Height * _inverseSupersamplingFactor;
 
 				// SpriteEffects mirror the whole text block, not each glyph independently.
 				if (flipHorizontally)
@@ -345,7 +360,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					color,
 					rotation,
 					Vector2.Zero,
-					scale,
+					drawScale,
 					effects,
 					layerDepth);
 			}
@@ -366,6 +381,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		var previous = default(GlyphMetrics);
 		Texture2D? texture = null;
 		var textureIndex = -1;
+		var needsScaling = SupersamplingFactor != 1f;
+		var inverseScale = new Vector2(_inverseSupersamplingFactor);
 
 		for (var i = 0; i < text.Length;)
 		{
@@ -412,11 +429,27 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					textureIndex = glyph.TextureIndex;
 				}
 
-				spriteBatch.Draw(
-					texture!,
-					new Vector2(position.X + penX + glyph.OffsetX, baselineY + lineTop + glyph.OffsetY),
-					glyph.SourceRectangle,
-					color);
+				var glyphPosition = new Vector2(
+					position.X + penX + glyph.OffsetX,
+					baselineY + lineTop + glyph.OffsetY);
+
+				if (needsScaling)
+				{
+					spriteBatch.Draw(
+						texture!,
+						glyphPosition,
+						glyph.SourceRectangle,
+						color,
+						0f,
+						Vector2.Zero,
+						inverseScale,
+						SpriteEffects.None,
+						0f);
+				}
+				else
+				{
+					spriteBatch.Draw(texture!, glyphPosition, glyph.SourceRectangle, color);
+				}
 			}
 
 			penX += glyph.Metrics.Advance;

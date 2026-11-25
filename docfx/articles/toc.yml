@@ -2,6 +2,8 @@
   href: introduction.md
 - name: Getting started
   href: getting-started.md
+- name: Supersampling
+  href: supersampling.md
 - name: Architecture
   href: architecture.md
 - name: Samples

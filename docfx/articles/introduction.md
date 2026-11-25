@@ -58,6 +58,7 @@ exception otherwise.
 | TTF/OTF parsing | Yes, via StbTrueTypeNext |
 | Font collections (`.ttc`/`.otc`) | Yes, by face index |
 | Dynamic font sizes | Yes, cached per float size |
+| Glyph supersampling | Yes, configurable factor (default 2×) |
 | On-demand glyph atlas | Yes |
 | Multiple atlas pages | Yes, bounded by settings |
 | Kerning | Yes, via StbTrueTypeNext GPOS/kern |

@@ -21,8 +21,10 @@ dotnet run --project Samples/HelloWorld
 dotnet run --project Samples/MeasureText
 dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
+dotnet run --project Samples/Supersampling
 dotnet run --project Samples/HelloWorld -- --screenshot out.png
 dotnet run --project Samples/Benchmark -- --screenshot benchmark.png
+dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
 ```
 
 Documentation:
@@ -53,8 +55,9 @@ FontStashSharp2/
 FontStashSharp2.Tests/      xUnit tests; Fonts/ABeeZee-Regular.ttf is the fixture
 Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
+Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
-docfx/                      docfx.json, articles, API reference, screenshot
+docfx/                      docfx.json, articles, API reference, screenshots
 ```
 
 ## Invariants
@@ -74,6 +77,9 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
   baseline). Do not flip the sign.
 - Advances and kerning are converted from font units with
   `ScaleForMappingEmToPixels(FontSize)` (em sizing), not `ScaleForPixelHeight`.
+- Glyph bitmaps are rasterized at `fontScale * SupersamplingFactor`. Bitmap offsets are divided by
+  the factor before layout so advances, ascent, and line spacing stay nominal. Atlas source rectangles
+  remain physical; draws use `requestedScale / SupersamplingFactor`.
 - Kerning applies only when the previous and current glyphs come from the same source; never kern
   across a line break.
 - Flips mirror the whole block around its measured size. Per-glyph destination positions are
@@ -85,6 +91,8 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 - Pages are 1024x1024 by default, created lazily, capped by `MaxTextureCount`.
 - Padding is included in the packed slot; glyph edge pixels are extruded into the padding. Source
   rectangles exclude the padding.
+- `SupersamplingFactor` (default 2) multiplies glyph pixel dimensions; atlas usage grows roughly with
+  the square of the factor. Do not apply the factor to advances, kerning, or line metrics.
 - Texture pages are `SurfaceFormat.Color` and premultiplied by default (RGB = alpha).
 - `TextureAtlas` is lock-protected. `FontSystem`, fonts, and `GlyphCache` are **not** thread-safe.
 - Uploading a newly rasterized glyph may happen between `SpriteBatch.Draw` calls; do not introduce
@@ -93,9 +101,10 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 ### Draw-path performance
 
 - `DynamicSpriteFont.DrawText` dispatches to a dedicated default path when rotation is 0, origin is
-  0, scale is 1, effects are None, and layer depth is 0. It uses the four-argument
-  `SpriteBatch.Draw` and caches the current atlas texture across glyphs. The transformed path keeps
-  per-glyph origin/rotation/scale/effects handling.
+  0, scale is 1, effects are None, and layer depth is 0. It caches the current atlas texture across
+  glyphs and uses the four-argument `SpriteBatch.Draw` when `SupersamplingFactor` is 1, or an
+  inverse-scaled draw otherwise. The transformed path keeps per-glyph origin/rotation/scale/effects
+  handling and divides the draw scale by the supersampling factor.
 - `GlyphCache` keeps ASCII metrics, rendered glyphs, and kerning pairs in fixed arrays (ASCII kerning
   is a lazily filled 128×128 table). Non-ASCII falls back to dictionaries. Do not remove these fast
   paths without running `Samples/Benchmark`.
@@ -116,8 +125,9 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 
 Tests use a fake `IGlyphAtlas` so caching/rasterization can be tested without a GPU. Prefer this seam
 over spinning up MonoGame in unit tests. `Samples/HelloWorld --screenshot` is the visual integration
-check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen.
-Keep tests deterministic; do not depend on system fonts.
+check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen;
+`Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison. Keep tests deterministic; do
+not depend on system fonts.
 
 When adding behavior, add tests for:
 
@@ -130,7 +140,8 @@ When adding behavior, add tests for:
 
 `Samples/Benchmark` is the source of truth for DrawString performance claims.
 
-- Compare the same TTF, pixel size, text, and pre-baked atlas for both engines.
+- Compare the same TTF, pixel size, text, and pre-baked atlas for both engines. The benchmark uses
+  `SupersamplingFactor = 1` so SpriteFont and FontStashSharp2 both draw 1:1 atlases.
 - Exclude first-use glyph rasterization, JIT, and batch growth from measured phases via warmup.
 - Alternate mode order between rounds and report CPU submission (small clipped target) separately
   from full rendering (1280×720) so GPU fill does not hide CPU regressions.
@@ -149,7 +160,8 @@ When adding behavior, add tests for:
 ## Docs
 
 Public API XML documentation is required (`GenerateDocumentationFile` is on). Keep `README.md`,
-`docfx/articles/*.md`, and `AGENTS.md` in sync when behavior or public API changes. Regenerate API
+`docfx/articles/*.md` (including `supersampling.md`), and `AGENTS.md` in sync when behavior or public
+API changes. Regenerate API
 docs with docfx; `docfx/api/` and `docfx/_site/` are generated and git-ignored.
 
 ## Style
