@@ -1,5 +1,6 @@
+# Resolves to the first article TOC item, which is Getting started at ../index.md.
 - name: Docs
-  href: articles/introduction.md
+  href: articles/
 - name: API
   href: api/
 - name: GitHub

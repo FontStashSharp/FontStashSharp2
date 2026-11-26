@@ -212,12 +212,12 @@ dotnet run --project Samples/CustomRenderer
 dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
 ```
 
-See [Getting started](getting-started.md) for the general API, [Samples](samples.md) for the other
+See [Getting started](../index.md) for the general API, [Samples](samples.md) for the other
 samples, and [Architecture](architecture.md) for the rasterization pipeline.
 
 ## Related
 
-- [Getting started](getting-started.md)
+- [Getting started](../index.md)
 - [Architecture](architecture.md)
 - [Samples](samples.md)
 - [Supersampling](supersampling.md)

@@ -103,5 +103,5 @@ The sample also prints atlas page and glyph counts per factor. Press `Esc` to ex
 - preloading still counts unique glyphs, independent of the factor;
 - the configured factor is exposed by `DynamicSpriteFont`.
 
-See [Getting started](getting-started.md) for the general API, [Samples](samples.md) for the comparison
+See [Getting started](../index.md) for the general API, [Samples](samples.md) for the comparison
 sample, and [Architecture](architecture.md) for the rasterization pipeline.
