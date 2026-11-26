@@ -156,17 +156,13 @@ internal sealed class OpenTKSampleWindow : GameWindow
 			"Stroke effect",
 			new Vector2(64f, 500f),
 			Accent,
-			effect: TextEffect.Stroke,
-			effectAmount: 1,
-			effectColor: Color.White);
+			effect: TextEffectOptions.Stroke(1, Color.White));
 		body.DrawText(
 			_renderer,
 			"Shadow effect",
 			new Vector2(64f, 560f),
 			Warm,
-			effect: TextEffect.Shadow,
-			effectAmount: 4,
-			effectColor: new Color(120, 70, 30));
+			effect: TextEffectOptions.Shadow(4, new Color(120, 70, 30)));
 
 		small.DrawText(
 			_renderer,

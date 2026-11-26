@@ -6,6 +6,8 @@
   href: supersampling.md
 - name: Custom renderers
   href: custom-renderers.md
+- name: Text effects
+  href: text-effects.md
 - name: Architecture
   href: architecture.md
 - name: Samples

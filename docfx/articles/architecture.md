@@ -142,14 +142,14 @@ contracts and a complete example.
 
 ## Text effects
 
-`TextEffect.Stroke` and `TextEffect.Shadow` are draw-time effects. The font first submits the effect
-passes, then the main text pass, so effect pixels never cover later glyphs:
+A draw call takes an optional `TextEffectOptions?` value; `null` draws normally. The font first
+submits the effect passes, then the main text pass, so effect pixels never cover later glyphs:
 
-- **Stroke** submits the glyph at every offset in a square ring up to `effectAmount` (8 passes for
-  amount 1). The stroke uses `effectColor`.
-- **Shadow** submits one offset by `(effectAmount, effectAmount)` using `effectColor`.
-- `effectColor` defaults to white. Use a contrasting color for visible outlines or shadows.
-- `effectAmount = 0` is equivalent to `None`; negative values throw.
+- **Stroke** submits the glyph at every offset in a square ring up to `Amount` (8 passes for amount
+  1), using `Color`.
+- **Shadow** submits one offset by `(Amount, Amount)`, using `Color`.
+- `Color` defaults to white. Use a contrasting color for visible outlines or shadows.
+- `Amount = 0` is equivalent to no effect; negative values throw.
 
 The fast `SpriteBatch` path is used only when the effect is `None`. Effects reuse the same atlas
 glyphs and layout; they only multiply draw submissions.

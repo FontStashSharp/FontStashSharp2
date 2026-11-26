@@ -170,10 +170,10 @@ clear.
   atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when `SupersamplingFactor`
   is 1, or an inverse-scaled draw otherwise. The transformed path keeps per-glyph
   origin/rotation/scale/effects handling and divides the draw scale by the supersampling factor.
-- `TextEffect.Stroke` submits the glyph at every square-ring offset up to `effectAmount`; `Shadow`
-  submits one `(amount, amount)` offset. Both use `effectColor` (default white; a `default(Color)`
-  argument is normalized to white). Effect passes run before the main pass and are draw-time only
-  (the atlas glyph is unchanged). Keep the `None` fast path.
+- A draw call takes `TextEffectOptions? effect`; `null` means no effect. `Stroke` submits the glyph at
+  every square-ring offset up to `Amount`; `Shadow` submits one `(Amount, Amount)` offset. Both use
+  `Color`, which defaults to white. Effect passes run before the main pass and are draw-time only (the
+  atlas glyph is unchanged). Keep the no-effect fast path.
 - `GlyphCache` keeps ASCII metrics, rendered glyphs, and kerning pairs in fixed arrays (ASCII kerning
   is a lazily filled 128×128 table). Non-ASCII falls back to dictionaries. Do not remove these fast
   paths without running `Samples/Benchmark`.
@@ -183,10 +183,10 @@ clear.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth) and must accept the trailing optional
-  `TextEffect effect = TextEffect.None, int effectAmount = 1, Color effectColor = default` triple.
-- `effectAmount` must be non-negative; `0` disables effects. Undefined `TextEffect` values throw.
+  `TextEffectOptions? effect = null`. `TextEffect` has only `Stroke` and `Shadow`; no `None` value.
+- `TextEffectOptions.Amount` must be non-negative; `0` disables effects. Invalid effect kinds throw.
   Effect passes run before the main text pass and use the same atlas glyphs.
-- `effectColor` is normalized to white when callers use the default argument.
+- `TextEffectOptions.Color` defaults to white when omitted.
 - `SpriteFontBase` is the font parameter type. In the MonoGame build its public abstract span-based
   `DrawText` hooks accept a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; the
   platform-agnostic build exposes only the two renderer hooks. `string`/`StringBuilder` and
@@ -247,7 +247,7 @@ When adding behavior, add tests for:
 ## Docs
 
 Public API XML documentation is required (`GenerateDocumentationFile` is on). Keep `README.md`,
-`docfx/articles/*.md` (including `supersampling.md`, `custom-renderers.md`, and
+`docfx/articles/*.md` (including `supersampling.md`, `custom-renderers.md`, `text-effects.md`, and
 `platform-agnostic.md`), and `AGENTS.md` in sync when behavior or public API changes. Regenerate API
 docs with docfx; `docfx/api/` and `docfx/_site/` are generated and git-ignored.
 

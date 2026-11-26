@@ -202,9 +202,7 @@ public sealed class PlatformAgnosticFontTests
 			"A",
 			new Vector2(20f, 30f),
 			Color.White,
-			effect: TextEffect.Shadow,
-			effectAmount: 2,
-			effectColor: effectColor);
+			effect: TextEffectOptions.Shadow(2, effectColor));
 
 		Assert.Equal(2, renderer.Calls.Count);
 		var shadow = renderer.Calls[0];
@@ -235,8 +233,7 @@ public sealed class PlatformAgnosticFontTests
 			"A",
 			Vector2.Zero,
 			Color.White,
-			effect: TextEffect.Shadow,
-			effectAmount: 2);
+			effect: TextEffectOptions.Shadow(2));
 
 		Assert.Equal(2, renderer.Calls.Count);
 		Assert.Equal(Color.White, renderer.Calls[0].Color);
@@ -261,9 +258,7 @@ public sealed class PlatformAgnosticFontTests
 			"A",
 			new Vector2(20f, 30f),
 			Color.White,
-			effect: TextEffect.Stroke,
-			effectAmount: 1,
-			effectColor: effectColor);
+			effect: TextEffectOptions.Stroke(1, effectColor));
 
 		Assert.Equal(9, renderer.Calls.Count);
 		var main = renderer.Calls[^1];
@@ -295,8 +290,7 @@ public sealed class PlatformAgnosticFontTests
 			"A",
 			Vector2.Zero,
 			Color.White,
-			effect: TextEffect.Shadow,
-			effectAmount: 0);
+			effect: TextEffectOptions.Shadow(0));
 
 		Assert.Single(renderer.Calls);
 	}
@@ -313,10 +307,10 @@ public sealed class PlatformAgnosticFontTests
 		});
 		var font = fontSystem.GetFont(24f);
 
+		Assert.Throws<ArgumentOutOfRangeException>(() => TextEffectOptions.Shadow(-1));
+		Assert.Throws<ArgumentOutOfRangeException>(() => new TextEffectOptions((TextEffect)99));
 		Assert.Throws<ArgumentOutOfRangeException>(
-			() => font.DrawText(renderer, "A", Vector2.Zero, Color.White, effect: TextEffect.Shadow, effectAmount: -1));
-		Assert.Throws<ArgumentOutOfRangeException>(
-			() => font.DrawText(renderer, "A", Vector2.Zero, Color.White, effect: (TextEffect)99));
+			() => font.DrawText(renderer, "A", Vector2.Zero, Color.White, effect: default(TextEffectOptions)));
 	}
 
 	[Fact]

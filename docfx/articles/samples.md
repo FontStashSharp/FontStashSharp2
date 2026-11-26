@@ -81,8 +81,8 @@ interface contracts and the renderer implementation guide.
 
 A dedicated `SpriteBatch` sample for the optional draw effect arguments:
 
-- `TextEffect.None`, `TextEffect.Stroke`, and `TextEffect.Shadow`;
-- different `effectAmount` and `effectColor` values;
+- no effect (`null`), `TextEffect.Stroke`, and `TextEffect.Shadow`;
+- different `Amount` and `Color` values inside `TextEffectOptions`;
 - effects combined with rotation, scaling, and horizontal flipping;
 - every line goes through `SpriteBatch.DrawString`, so it exercises the MonoGame draw path.
 
@@ -93,8 +93,7 @@ dotnet run --project Samples/TextEffects
 dotnet run --project Samples/TextEffects -- --screenshot text-effects.png
 ```
 
-Press `Esc` to exit. See [Text effects](../index.md#text-effects) in the Getting Started guide for the
-API.
+Press `Esc` to exit. See [Text effects](text-effects.md) for the API and effect behavior.
 
 ## OpenTK (platform-agnostic)
 

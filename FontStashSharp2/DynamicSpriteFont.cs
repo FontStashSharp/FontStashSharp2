@@ -369,9 +369,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
-		TextEffect effect = TextEffect.None,
-		int effectAmount = 1,
-		Color effectColor = default)
+		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 
@@ -380,15 +378,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		ValidateTextEffect(effect, effectAmount);
-		EnsureAtlasGeneration();
-
-		if (effectAmount == 0)
+		if (effect is { } options)
 		{
-			effect = TextEffect.None;
+			ValidateTextEffect(options);
 		}
 
-		if (effect == TextEffect.None)
+		EnsureAtlasGeneration();
+
+		if (effect is not { Amount: > 0 } activeEffect)
 		{
 			if (rotation == 0f
 				&& origin == Vector2.Zero
@@ -414,14 +411,13 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var passColor = NormalizeEffectColor(effectColor);
-		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		foreach (var offset in EnumerateEffectOffsets(activeEffect.Effect, activeEffect.Amount))
 		{
 			DrawTextCore(
 				spriteBatch,
 				text,
 				position,
-				passColor,
+				activeEffect.Color,
 				rotation,
 				origin,
 				scale,
@@ -574,9 +570,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
-		TextEffect effect = TextEffect.None,
-		int effectAmount = 1,
-		Color effectColor = default)
+		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -585,15 +579,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		ValidateTextEffect(effect, effectAmount);
-		EnsureAtlasGeneration();
-
-		if (effectAmount == 0)
+		if (effect is { } options)
 		{
-			effect = TextEffect.None;
+			ValidateTextEffect(options);
 		}
 
-		if (effect == TextEffect.None)
+		EnsureAtlasGeneration();
+
+		if (effect is not { Amount: > 0 } activeEffect)
 		{
 			DrawTextCore(
 				renderer,
@@ -609,14 +602,13 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var passColor = NormalizeEffectColor(effectColor);
-		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		foreach (var offset in EnumerateEffectOffsets(activeEffect.Effect, activeEffect.Amount))
 		{
 			DrawTextCore(
 				renderer,
 				text,
 				position,
-				passColor,
+				activeEffect.Color,
 				rotation,
 				origin,
 				scale,
@@ -766,9 +758,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
-		TextEffect effect = TextEffect.None,
-		int effectAmount = 1,
-		Color effectColor = default)
+		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -777,15 +767,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		ValidateTextEffect(effect, effectAmount);
-		EnsureAtlasGeneration();
-
-		if (effectAmount == 0)
+		if (effect is { } options)
 		{
-			effect = TextEffect.None;
+			ValidateTextEffect(options);
 		}
 
-		if (effect == TextEffect.None)
+		EnsureAtlasGeneration();
+
+		if (effect is not { Amount: > 0 } activeEffect)
 		{
 			DrawTextCore(
 				renderer,
@@ -801,14 +790,13 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var passColor = NormalizeEffectColor(effectColor);
-		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		foreach (var offset in EnumerateEffectOffsets(activeEffect.Effect, activeEffect.Amount))
 		{
 			DrawTextCore(
 				renderer,
 				text,
 				position,
-				passColor,
+				activeEffect.Color,
 				rotation,
 				origin,
 				scale,
@@ -1088,28 +1076,23 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
-	private static void ValidateTextEffect(TextEffect effect, int effectAmount)
+	private static void ValidateTextEffect(TextEffectOptions effect)
 	{
-		if (effect is not (TextEffect.None or TextEffect.Stroke or TextEffect.Shadow))
+		if (effect.Effect is not (TextEffect.Stroke or TextEffect.Shadow))
 		{
 			throw new ArgumentOutOfRangeException(
 				nameof(effect),
-				effect,
-				"Effect must be None, Stroke, or Shadow.");
+				effect.Effect,
+				"Effect must be Stroke or Shadow.");
 		}
 
-		if (effectAmount < 0)
+		if (effect.Amount < 0)
 		{
 			throw new ArgumentOutOfRangeException(
-				nameof(effectAmount),
-				effectAmount,
+				nameof(effect),
+				effect.Amount,
 				"Effect amount must be non-negative.");
 		}
-	}
-
-	private static Color NormalizeEffectColor(Color effectColor)
-	{
-		return effectColor == default ? Color.White : effectColor;
 	}
 
 	private static IEnumerable<Vector2> EnumerateEffectOffsets(TextEffect effect, int effectAmount)

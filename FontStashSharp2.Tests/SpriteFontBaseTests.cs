@@ -89,22 +89,22 @@ public sealed class SpriteFontBaseTests
 		var font = new StubFont();
 		var renderer = new StubRenderer();
 
+		var effect = TextEffectOptions.Shadow(3, Color.Red);
+
 		font.DrawText(
 			renderer,
 			"alpha",
 			Vector2.Zero,
 			Color.White,
-			effect: TextEffect.Shadow,
-			effectAmount: 3,
-			effectColor: Color.Red);
+			effect: effect);
 
-		Assert.Equal(TextEffect.Shadow, font.LastEffect);
-		Assert.Equal(3, font.LastEffectAmount);
-		Assert.Equal(Color.Red, font.LastEffectColor);
+		Assert.NotNull(font.LastEffect);
+		Assert.Equal(TextEffect.Shadow, font.LastEffect.Value.Effect);
+		Assert.Equal(3, font.LastEffect.Value.Amount);
+		Assert.Equal(Color.Red, font.LastEffect.Value.Color);
 
 		font.DrawText((SpriteBatch)null!, "beta", Vector2.Zero, Color.White);
-		Assert.Equal(TextEffect.None, font.LastEffect);
-		Assert.Equal(1, font.LastEffectAmount);
+		Assert.Null(font.LastEffect);
 	}
 
 	[Fact]
@@ -189,11 +189,7 @@ public sealed class SpriteFontBaseTests
 
 		public float LastLayerDepth { get; private set; }
 
-		public TextEffect LastEffect { get; private set; }
-
-		public int LastEffectAmount { get; private set; }
-
-		public Color LastEffectColor { get; private set; }
+		public TextEffectOptions? LastEffect { get; private set; }
 
 		public override Vector2 MeasureString(string text)
 		{
@@ -220,14 +216,10 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
-			TextEffect effect,
-			int effectAmount,
-			Color effectColor)
+			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
 			LastEffect = effect;
-			LastEffectAmount = effectAmount;
-			LastEffectColor = effectColor;
 		}
 
 		public override void DrawText(
@@ -240,9 +232,7 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
-			TextEffect effect,
-			int effectAmount,
-			Color effectColor)
+			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -250,8 +240,6 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
-			LastEffectAmount = effectAmount;
-			LastEffectColor = effectColor;
 		}
 
 		public override void DrawText(
@@ -264,9 +252,7 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
-			TextEffect effect,
-			int effectAmount,
-			Color effectColor)
+			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -274,8 +260,6 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
-			LastEffectAmount = effectAmount;
-			LastEffectColor = effectColor;
 		}
 	}
 

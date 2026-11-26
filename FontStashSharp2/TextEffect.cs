@@ -5,12 +5,9 @@ namespace FontStashSharp2;
 /// </summary>
 public enum TextEffect
 {
-	/// <summary>Draw the text normally.</summary>
-	None = 0,
-
-	/// <summary>Draw an outline around every glyph using <c>effectColor</c>.</summary>
+	/// <summary>Draw an outline around every glyph using the effect color.</summary>
 	Stroke = 1,
 
-	/// <summary>Draw a shadow behind the text using <c>effectColor</c>.</summary>
+	/// <summary>Draw a shadow behind the text using the effect color.</summary>
 	Shadow = 2,
 }
