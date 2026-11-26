@@ -44,7 +44,8 @@ The screenshot mode is also a useful end-to-end smoke test on a machine with a g
 FontStashSharp2/
   FontSystem.cs             owns sources, cached fonts, atlas; AddFont/GetFont/GetTexture
   FontSource.cs             wrapper around StbTrueTypeNext STBFont + name/metrics
-  IFontStashRenderer.cs     renderer abstraction for drawing without SpriteBatch
+  IFontStashRenderer.cs     quad renderer abstraction for drawing without SpriteBatch
+  IFontStashRenderer2.cs    vertex-quad renderer abstraction
   DynamicSpriteFont.cs      per-size metadata, MeasureString, PreloadGlyphs, DrawText
   SpriteFontBase.cs         public base type + drawing hooks and convenience overloads
   SpriteBatchExtensions.cs  SpriteFont-compatible DrawString overloads
@@ -59,7 +60,7 @@ FontStashSharp2.Tests/      xUnit tests; Fonts/ABeeZee-Regular.ttf is the fixtur
 Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
-Samples/CustomRenderer/     IFontStashRenderer sample with drop shadow
+Samples/CustomRenderer/     IFontStashRenderer + IFontStashRenderer2 sample
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
 docfx/                      docfx.json, articles, API reference, screenshots
 ```
@@ -119,12 +120,15 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth).
 - `SpriteFontBase` is the font parameter type. Its public abstract span-based `DrawText` hooks accept
-  either a `SpriteBatch` or an `IFontStashRenderer`; `string`/`StringBuilder` and position/color
-  overloads delegate to them. Custom fonts derive the type and implement both span hooks. The
-  extension methods call the SpriteBatch hook.
+  a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; `string`/`StringBuilder` and
+  position/color overloads delegate to them. Custom fonts derive the type and implement all three span
+  hooks. The extension methods call the SpriteBatch hook.
 - `IFontStashRenderer.Draw` receives pre-transformed glyph positions (origin zero) and includes
   `SpriteEffects` so flips are representable. Do not remove the effects parameter; the generic draw
   path relies on it.
+- `IFontStashRenderer2.DrawQuad` receives four screen-space vertices. `Position.Z` is the layer depth
+  and texture coordinates already include `SpriteEffects` mirroring; do not apply origin transforms or
+  flip UVs again in the renderer.
 - Fonts are cached per exact float size by `FontSystem.GetFont`; repeated calls return the same
   instance and glyph cache.
 - `AddFont` clears future font instances (new fallback chain). Existing fonts keep their snapshot.

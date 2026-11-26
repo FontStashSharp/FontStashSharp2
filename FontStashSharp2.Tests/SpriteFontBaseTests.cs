@@ -84,10 +84,44 @@ public sealed class SpriteFontBaseTests
 	}
 
 	[Fact]
+	public void VertexRendererOverloads_DispatchToQuadHook()
+	{
+		var font = new StubFont();
+		var renderer = new StubVertexRenderer();
+
+		font.DrawText(
+			renderer,
+			"alpha",
+			Vector2.Zero,
+			Color.White,
+			0.5f,
+			Vector2.Zero,
+			new Vector2(2f),
+			SpriteEffects.FlipVertically,
+			0.25f);
+
+		Assert.Equal("alpha", font.LastDrawnText);
+		Assert.Equal(0.5f, font.LastRotation);
+		Assert.Equal(new Vector2(2f), font.LastScale);
+		Assert.Equal(SpriteEffects.FlipVertically, font.LastEffects);
+		Assert.Equal(0.25f, font.LastLayerDepth);
+
+		font.DrawText(renderer, "beta".AsSpan(), Vector2.Zero, Color.White);
+		Assert.Equal("beta", font.LastDrawnText);
+		Assert.Equal(0f, font.LastRotation);
+		Assert.Equal(Vector2.One, font.LastScale);
+		Assert.Equal(SpriteEffects.None, font.LastEffects);
+
+		font.DrawText(renderer, new StringBuilder("gamma"), Vector2.Zero, Color.White);
+		Assert.Equal("gamma", font.LastDrawnText);
+	}
+
+	[Fact]
 	public void DrawTextOverloads_RejectNullText()
 	{
 		var font = new StubFont();
 		var renderer = new StubRenderer();
+		var vertexRenderer = new StubVertexRenderer();
 
 		Assert.Throws<ArgumentNullException>(
 			() => font.DrawText((SpriteBatch)null!, (string)null!, Vector2.Zero, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f));
@@ -105,6 +139,14 @@ public sealed class SpriteFontBaseTests
 			() => font.DrawText(renderer, (string)null!, Vector2.Zero, Color.White));
 		Assert.Throws<ArgumentNullException>(
 			() => font.DrawText(renderer, (StringBuilder)null!, Vector2.Zero, Color.White));
+		Assert.Throws<ArgumentNullException>(
+			() => font.DrawText(vertexRenderer, (string)null!, Vector2.Zero, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f));
+		Assert.Throws<ArgumentNullException>(
+			() => font.DrawText(vertexRenderer, (StringBuilder)null!, Vector2.Zero, Color.White, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f));
+		Assert.Throws<ArgumentNullException>(
+			() => font.DrawText(vertexRenderer, (string)null!, Vector2.Zero, Color.White));
+		Assert.Throws<ArgumentNullException>(
+			() => font.DrawText(vertexRenderer, (StringBuilder)null!, Vector2.Zero, Color.White));
 	}
 
 	private sealed class StubFont : SpriteFontBase
@@ -169,6 +211,24 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 		}
+
+		public override void DrawText(
+			IFontStashRenderer2 renderer,
+			ReadOnlySpan<char> text,
+			Vector2 position,
+			Color color,
+			float rotation,
+			Vector2 origin,
+			Vector2 scale,
+			SpriteEffects effects,
+			float layerDepth)
+		{
+			LastDrawnText = text.ToString();
+			LastRotation = rotation;
+			LastScale = scale;
+			LastEffects = effects;
+			LastLayerDepth = layerDepth;
+		}
 	}
 
 	private sealed class StubRenderer : IFontStashRenderer
@@ -184,6 +244,20 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth)
+		{
+		}
+	}
+
+	private sealed class StubVertexRenderer : IFontStashRenderer2
+	{
+		public GraphicsDevice GraphicsDevice => null!;
+
+		public void DrawQuad(
+			Texture2D texture,
+			ref VertexPositionColorTexture topLeft,
+			ref VertexPositionColorTexture topRight,
+			ref VertexPositionColorTexture bottomLeft,
+			ref VertexPositionColorTexture bottomRight)
 		{
 		}
 	}

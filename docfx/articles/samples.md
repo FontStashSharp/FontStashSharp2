@@ -56,9 +56,13 @@ still being downsampled. The 2× row is the default tradeoff. See the
 
 ## Custom renderer (DesktopGL)
 
-A dedicated `IFontStashRenderer` sample. Every line, including the chrome, is drawn through
-`font.DrawText(renderer, ...)`, not the `SpriteBatch` extension methods. The custom renderer wraps
-`SpriteBatch` and draws each glyph twice to add a drop shadow.
+A dedicated sample for both custom renderer interfaces. Every line, including the chrome, is drawn
+through `font.DrawText(renderer, ...)`, not the `SpriteBatch` extension methods:
+
+- the left column uses `IFontStashRenderer` with a `SpriteBatch`-backed renderer that adds a drop
+  shadow;
+- the right column uses `IFontStashRenderer2` with a `BasicEffect` vertex renderer and
+  `DrawUserIndexedPrimitives`.
 
 ![Custom renderer sample](../images/custom-renderer.png)
 
@@ -68,9 +72,9 @@ dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
 ```
 
 The sample exercises the `string`, `StringBuilder`, `ReadOnlySpan<char>`, full transform (rotation,
-scale, origin), and `SpriteEffects` overloads. The footer shows how many `IFontStashRenderer.Draw` calls
-the previous frame produced. See [Custom renderers](custom-renderers.md) for the interface contract and
-the renderer implementation guide.
+scale, origin), and `SpriteEffects` overloads on both interfaces. The footer shows glyph-quad and
+vertex-quad counts from the previous frame. See [Custom renderers](custom-renderers.md) for both
+interface contracts and the renderer implementation guide.
 
 ## MeasureText (console)
 

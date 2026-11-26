@@ -133,7 +133,40 @@ public abstract void DrawText(
     float layerDepth);
 ```
 
-Custom `SpriteFontBase` implementations must provide this hook (and the matching `SpriteBatch` hook).
+Custom `SpriteFontBase` implementations must provide this hook, the matching `SpriteBatch` hook, and
+the `IFontStashRenderer2` hook described below.
+
+## Vertex-level renderers
+
+`IFontStashRenderer2` is for pipelines that consume vertices directly rather than textured quads:
+
+```csharp
+public interface IFontStashRenderer2
+{
+    GraphicsDevice GraphicsDevice { get; }
+
+    void DrawQuad(
+        Texture2D texture,
+        ref VertexPositionColorTexture topLeft,
+        ref VertexPositionColorTexture topRight,
+        ref VertexPositionColorTexture bottomLeft,
+        ref VertexPositionColorTexture bottomRight);
+}
+```
+
+The font supplies:
+
+- screen-space `Position` values;
+- `Position.Z` set to the requested layer depth;
+- `Color` set to the requested color mask;
+- texture coordinates already mirrored for `SpriteEffects`.
+
+A typical implementation submits two triangles using the order
+`top-left, top-right, bottom-left` and `top-right, bottom-right, bottom-left`. The same batching and
+atlas-page considerations apply as with `IFontStashRenderer`; each `DrawQuad` call includes the texture
+that owns its coordinates.
+
+All full and convenience `DrawText` overloads are available for `IFontStashRenderer2` as well.
 
 ## Writing a non-SpriteBatch renderer
 
@@ -167,8 +200,9 @@ target renderer when downscaling the supersampled atlas.
 
 ## Sample
 
-`Samples/CustomRenderer` draws every text element through this interface, using a custom
-`SpriteBatch`-backed renderer that adds a drop shadow to each glyph. It exercises the string,
+`Samples/CustomRenderer` demonstrates both interfaces side by side. The left column uses an
+`IFontStashRenderer` backed by `SpriteBatch` with a drop shadow; the right column uses an
+`IFontStashRenderer2` backed by `BasicEffect`/`DrawUserIndexedPrimitives`. It exercises string,
 `StringBuilder`, span, full-transform, and sprite-effects overloads.
 
 ![Custom renderer sample](../images/custom-renderer.png)

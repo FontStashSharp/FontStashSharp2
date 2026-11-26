@@ -491,6 +491,157 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
+	/// <inheritdoc />
+	public override void DrawText(
+		IFontStashRenderer2 renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+
+		if (text.IsEmpty)
+		{
+			return;
+		}
+
+		var atlas = _fontSystem.GetAtlasOrThrow();
+
+		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+		var blockSize = flipHorizontally || flipVertically ? MeasureString(text) : Vector2.Zero;
+
+		var lineTop = 0f;
+		var penX = 0f;
+		var hasPrevious = false;
+		var previous = default(GlyphMetrics);
+		Texture2D? texture = null;
+		var textureIndex = -1;
+		var drawScale = new Vector2(
+			scale.X * _inverseSupersamplingFactor,
+			scale.Y * _inverseSupersamplingFactor);
+
+		for (var i = 0; i < text.Length;)
+		{
+			var codepoint = ReadCodepoint(text, ref i);
+
+			switch (codepoint)
+			{
+				case '\r':
+					continue;
+				case '\n':
+					lineTop += LineSpacing;
+					penX = 0f;
+					hasPrevious = false;
+					continue;
+				case '\t':
+					codepoint = ' ';
+					break;
+			}
+
+			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
+				? cachedGlyph
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+
+			if (hasPrevious)
+			{
+				penX += _glyphCache.GetKerning(previous, glyph.Metrics);
+			}
+
+			if (glyph.HasTexture)
+			{
+				var glyphX = penX + glyph.OffsetX;
+				var glyphY = lineTop + Ascent + glyph.OffsetY;
+				var glyphWidth = glyph.SourceRectangle.Width * _inverseSupersamplingFactor;
+				var glyphHeight = glyph.SourceRectangle.Height * _inverseSupersamplingFactor;
+
+				if (flipHorizontally)
+				{
+					glyphX = blockSize.X - glyphX - glyphWidth;
+				}
+
+				if (flipVertically)
+				{
+					glyphY = blockSize.Y - glyphY - glyphHeight;
+				}
+
+				if (glyph.TextureIndex != textureIndex)
+				{
+					texture = _fontSystem.GetTextureOrThrow(glyph.TextureIndex);
+					textureIndex = glyph.TextureIndex;
+				}
+
+				var localX = (glyphX - origin.X) * scale.X;
+				var localY = (glyphY - origin.Y) * scale.Y;
+
+				Vector2 screenPosition;
+				if (rotation == 0f)
+				{
+					screenPosition = new Vector2(position.X + localX, position.Y + localY);
+				}
+				else
+				{
+					var rotationCos = MathF.Cos(rotation);
+					var rotationSin = MathF.Sin(rotation);
+					screenPosition = new Vector2(
+						position.X + (localX * rotationCos) - (localY * rotationSin),
+						position.Y + (localX * rotationSin) + (localY * rotationCos));
+				}
+
+				var cos = rotation == 0f ? 1f : MathF.Cos(rotation);
+				var sin = rotation == 0f ? 0f : MathF.Sin(rotation);
+				var quadWidth = glyph.SourceRectangle.Width * drawScale.X;
+				var quadHeight = glyph.SourceRectangle.Height * drawScale.Y;
+				var right = new Vector2(quadWidth * cos, quadWidth * sin);
+				var down = new Vector2(-quadHeight * sin, quadHeight * cos);
+
+				var source = glyph.SourceRectangle;
+				var u0 = source.X / (float)texture!.Width;
+				var v0 = source.Y / (float)texture.Height;
+				var u1 = (source.X + source.Width) / (float)texture.Width;
+				var v1 = (source.Y + source.Height) / (float)texture.Height;
+
+				if (flipHorizontally)
+				{
+					(u0, u1) = (u1, u0);
+				}
+
+				if (flipVertically)
+				{
+					(v0, v1) = (v1, v0);
+				}
+
+				var topLeft = new VertexPositionColorTexture(
+					new Vector3(screenPosition.X, screenPosition.Y, layerDepth),
+					color,
+					new Vector2(u0, v0));
+				var topRight = new VertexPositionColorTexture(
+					new Vector3(screenPosition.X + right.X, screenPosition.Y + right.Y, layerDepth),
+					color,
+					new Vector2(u1, v0));
+				var bottomLeft = new VertexPositionColorTexture(
+					new Vector3(screenPosition.X + down.X, screenPosition.Y + down.Y, layerDepth),
+					color,
+					new Vector2(u0, v1));
+				var bottomRight = new VertexPositionColorTexture(
+					new Vector3(screenPosition.X + right.X + down.X, screenPosition.Y + right.Y + down.Y, layerDepth),
+					color,
+					new Vector2(u1, v1));
+
+				renderer.DrawQuad(texture, ref topLeft, ref topRight, ref bottomLeft, ref bottomRight);
+			}
+
+			penX += glyph.Metrics.Advance;
+			hasPrevious = true;
+			previous = glyph.Metrics;
+		}
+	}
+
 	private void DrawTextDefault(SpriteBatch spriteBatch, ReadOnlySpan<char> text, Vector2 position, Color color)
 	{
 		var atlas = _fontSystem.GetAtlasOrThrow();

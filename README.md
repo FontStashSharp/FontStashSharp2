@@ -126,9 +126,30 @@ font.DrawText(renderer, "Hello", position, color);
 The font pre-transforms glyph positions, so the renderer receives the top-left of each glyph quad and
 rotates/scales around that point (origin zero). `SpriteEffects` is included so flips work without a
 second source-rectangle convention. `Samples/CustomRenderer` uses a `SpriteBatch`-backed
-implementation of this interface for all of its demo text. See the
-[custom renderer article](docfx/articles/custom-renderers.md) for a complete adapter and implementation
-guidance.
+implementation of this interface for its left column and a vertex-based `IFontStashRenderer2` for the
+right column. See the [custom renderer article](docfx/articles/custom-renderers.md) for complete
+adapters and implementation guidance.
+
+For vertex-level pipelines, implement `IFontStashRenderer2` instead:
+
+```csharp
+public interface IFontStashRenderer2
+{
+    GraphicsDevice GraphicsDevice { get; }
+
+    void DrawQuad(
+        Texture2D texture,
+        ref VertexPositionColorTexture topLeft,
+        ref VertexPositionColorTexture topRight,
+        ref VertexPositionColorTexture bottomLeft,
+        ref VertexPositionColorTexture bottomRight);
+}
+```
+
+Vertex positions are in screen space, Z is the layer depth, and texture coordinates already include
+`SpriteEffects` mirroring. Submit the quad as two triangles, for example
+`top-left, top-right, bottom-left` and `top-right, bottom-right, bottom-left`. The same `DrawText`
+overloads are available for string, `StringBuilder`, spans, and full transforms.
 
 ## Benchmarking against SpriteFont
 

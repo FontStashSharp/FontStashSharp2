@@ -102,8 +102,10 @@ passed to `SpriteBatch.Draw` so each glyph's texture is flipped to match.
 submit each glyph through `renderer.Draw` instead of `SpriteBatch.Draw`. The interface includes sprite
 effects and layer depth, and receives already-transformed positions with an implicit origin of zero.
 The CustomRenderer sample implements the interface with a `SpriteBatch` adapter for all of its text,
-including rotated, scaled, and flipped lines, so that path runs in the visual integration check. See
-[Custom renderers](custom-renderers.md) for the interface contract and a complete example.
+including rotated, scaled, and flipped lines, so that path runs in the visual integration check.
+`IFontStashRenderer2` exposes the same pipeline as four screen-space vertices with layer depth in Z
+and flips baked into the texture coordinates. See [Custom renderers](custom-renderers.md) for both
+contracts and a complete example.
 
 ## Atlas details
 

@@ -319,4 +319,143 @@ public abstract class SpriteFontBase
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(renderer, text.ToString().AsSpan(), position, color);
 	}
+
+	/// <summary>
+	/// Draws a span of characters through a vertex-level <see cref="IFontStashRenderer2"/>.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="rotation">Rotation, in radians, around <paramref name="origin"/>.</param>
+	/// <param name="origin">Rotation/scaling origin in text layout pixels.</param>
+	/// <param name="scale">Horizontal and vertical text scale.</param>
+	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
+	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	public abstract void DrawText(
+		IFontStashRenderer2 renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth);
+
+	/// <summary>
+	/// Draws a span of characters through a vertex-level renderer at a position with no rotation or
+	/// scaling.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	public void DrawText(
+		IFontStashRenderer2 renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color)
+	{
+		DrawText(
+			renderer,
+			text,
+			position,
+			color,
+			0f,
+			Vector2.Zero,
+			Vector2.One,
+			SpriteEffects.None,
+			0f);
+	}
+
+	/// <summary>
+	/// Draws a string through a vertex-level <see cref="IFontStashRenderer2"/>.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="rotation">Rotation, in radians, around <paramref name="origin"/>.</param>
+	/// <param name="origin">Rotation/scaling origin in text layout pixels.</param>
+	/// <param name="scale">Horizontal and vertical text scale.</param>
+	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
+	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	public void DrawText(
+		IFontStashRenderer2 renderer,
+		string text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
+	}
+
+	/// <summary>
+	/// Draws a string through a vertex-level renderer at a position with no rotation or scaling.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	public void DrawText(
+		IFontStashRenderer2 renderer,
+		string text,
+		Vector2 position,
+		Color color)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		DrawText(renderer, text.AsSpan(), position, color);
+	}
+
+	/// <summary>
+	/// Draws the contents of a <see cref="StringBuilder"/> through a vertex-level
+	/// <see cref="IFontStashRenderer2"/>.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="rotation">Rotation, in radians, around <paramref name="origin"/>.</param>
+	/// <param name="origin">Rotation/scaling origin in text layout pixels.</param>
+	/// <param name="scale">Horizontal and vertical text scale.</param>
+	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
+	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	public void DrawText(
+		IFontStashRenderer2 renderer,
+		StringBuilder text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
+	}
+
+	/// <summary>
+	/// Draws the contents of a <see cref="StringBuilder"/> through a vertex-level renderer at a position
+	/// with no rotation or scaling.
+	/// </summary>
+	/// <param name="renderer">The renderer that receives glyph quads.</param>
+	/// <param name="text">The text to draw.</param>
+	/// <param name="position">The top-left position of the text block.</param>
+	/// <param name="color">The color mask applied to every glyph.</param>
+	public void DrawText(
+		IFontStashRenderer2 renderer,
+		StringBuilder text,
+		Vector2 position,
+		Color color)
+	{
+		ArgumentNullException.ThrowIfNull(text);
+		DrawText(renderer, text.ToString().AsSpan(), position, color);
+	}
 }

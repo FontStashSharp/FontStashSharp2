@@ -8,8 +8,8 @@ using Microsoft.Xna.Framework.Input;
 namespace CustomRendererSample;
 
 /// <summary>
-/// Demonstrates drawing text exclusively through <see cref="IFontStashRenderer"/> overloads of
-/// <c>DrawText</c>, using a custom renderer that adds a drop shadow to every glyph.
+/// Demonstrates both custom renderer interfaces: glyph quads through <see cref="IFontStashRenderer"/>
+/// and vertex quads through <see cref="IFontStashRenderer2"/>.
 /// </summary>
 internal sealed class CustomRendererGame : Game
 {
@@ -35,9 +35,12 @@ internal sealed class CustomRendererGame : Game
 	private FontSystem _fontSystem = null!;
 	private SpriteBatchFontRenderer _shadowRenderer = null!;
 	private SpriteBatchFontRenderer _plainRenderer = null!;
+	private BasicEffect _vertexEffect = null!;
+	private VertexFontRenderer _vertexRenderer = null!;
 	private RenderTarget2D? _renderTarget;
 	private int _screenshotFrames;
-	private int _lastDrawCalls;
+	private int _lastRenderer1Calls;
+	private int _lastRenderer2Calls;
 
 	public CustomRendererGame(string? screenshotPath)
 	{
@@ -54,7 +57,7 @@ internal sealed class CustomRendererGame : Game
 		TargetElapsedTime = TimeSpan.FromSeconds(1d / 60d);
 		IsMouseVisible = true;
 		Window.AllowUserResizing = false;
-		Window.Title = "FontStashSharp2 - Custom renderer";
+		Window.Title = "FontStashSharp2 - Custom renderers";
 	}
 
 	protected override void LoadContent()
@@ -89,6 +92,16 @@ internal sealed class CustomRendererGame : Game
 			_batch,
 			Color.Transparent,
 			Vector2.Zero);
+
+		_vertexEffect = new BasicEffect(GraphicsDevice)
+		{
+			World = Matrix.Identity,
+			View = Matrix.Identity,
+			Projection = Matrix.CreateOrthographicOffCenter(0, Width, Height, 0, 0, 1),
+			VertexColorEnabled = true,
+			TextureEnabled = true,
+		};
+		_vertexRenderer = new VertexFontRenderer(GraphicsDevice, _vertexEffect);
 
 		if (_screenshotPath is not null)
 		{
@@ -125,86 +138,126 @@ internal sealed class CustomRendererGame : Game
 		GraphicsDevice.SetRenderTarget(null);
 		GraphicsDevice.Clear(Background);
 
+		DrawFrame();
+
+		base.Draw(gameTime);
+	}
+
+	private void DrawFrame()
+	{
+		_lastRenderer1Calls = _shadowRenderer.DrawCalls + _plainRenderer.DrawCalls;
+		_lastRenderer2Calls = _vertexRenderer.QuadCount;
+		_shadowRenderer.ResetFrame();
+		_plainRenderer.ResetFrame();
+		_vertexRenderer.ResetFrame();
+
+		// Vertex text is drawn directly to the device first; SpriteBatch text then layers on top.
+		_vertexRenderer.Prepare();
+		DrawVertexText();
+
 		_batch.Begin(
 			sortMode: SpriteSortMode.Deferred,
 			blendState: BlendState.AlphaBlend,
 			samplerState: SamplerState.LinearClamp);
 
-		DrawScene(_batch);
+		DrawSpriteBatchText(_batch);
 
 		_batch.End();
-		base.Draw(gameTime);
 	}
 
-	private void DrawScene(SpriteBatch batch)
+	private void DrawVertexText()
 	{
-		var title = _fontSystem.GetFont(44);
-		var subtitle = _fontSystem.GetFont(18);
-		var section = _fontSystem.GetFont(14);
-		var label = _fontSystem.GetFont(15);
-		var demo = _fontSystem.GetFont(30);
-		var footer = _fontSystem.GetFont(15);
+		var font = _fontSystem.GetFont(28);
 
-		_lastDrawCalls = _shadowRenderer.DrawCalls + _plainRenderer.DrawCalls;
-		_shadowRenderer.ResetFrame();
-		_plainRenderer.ResetFrame();
+		font.DrawText(_vertexRenderer, "Vertex quads", new Vector2(860f, 174f), Text);
 
-		title.DrawText(_shadowRenderer, "Custom renderer", new Vector2(56f, 28f), Text);
-		subtitle.DrawText(
-			_plainRenderer,
-			"Every line below is drawn through DrawText(renderer, ...) with a custom IFontStashRenderer.",
-			new Vector2(58f, 86f),
-			Muted);
-		batch.Draw(_pixel, new Rectangle(56, 122, Width - 112, 1), Line);
-
-		section.DrawText(_plainRenderer, "DRAWTEXT OVERLOADS", new Vector2(56f, 146f), Accent);
-
-		label.DrawText(_plainRenderer, "string", new Vector2(56f, 185f), Muted);
-		demo.DrawText(_shadowRenderer, "Simple string overload", new Vector2(270f, 176f), Text);
-
-		label.DrawText(_plainRenderer, "StringBuilder", new Vector2(56f, 255f), Muted);
-		demo.DrawText(_shadowRenderer, _builderText, new Vector2(270f, 246f), Text);
-
-		label.DrawText(_plainRenderer, "ReadOnlySpan<char>", new Vector2(56f, 325f), Muted);
-		demo.DrawText(_shadowRenderer, SpanText.AsSpan(), new Vector2(270f, 316f), Text);
-
-		label.DrawText(_plainRenderer, "full transform", new Vector2(56f, 405f), Muted);
-		const string transformText = "Rotation + scale + origin";
-		demo.DrawText(
-			_shadowRenderer,
+		const string transformText = "Rotated + scaled";
+		font.DrawText(
+			_vertexRenderer,
 			transformText,
-			new Vector2(600f, 420f),
-			Warm,
-			-0.07f,
-			demo.MeasureString(transformText) * 0.5f,
-			new Vector2(1.15f),
+			new Vector2(1010f, 260f),
+			HighColor,
+			-0.08f,
+			font.MeasureString(transformText) * 0.5f,
+			new Vector2(1.2f),
 			SpriteEffects.None,
 			0f);
 
-		label.DrawText(_plainRenderer, "SpriteEffects", new Vector2(56f, 490f), Muted);
-		demo.DrawText(
-			_shadowRenderer,
-			"Flipped text",
-			new Vector2(270f, 481f),
-			HighColor,
+		font.DrawText(
+			_vertexRenderer,
+			"Flipped",
+			new Vector2(860f, 354f),
+			Warm,
 			0f,
 			Vector2.Zero,
 			Vector2.One,
 			SpriteEffects.FlipHorizontally,
 			0f);
+	}
 
-		batch.Draw(_pixel, new Rectangle(56, 566, Width - 112, 1), Line);
+	private void DrawSpriteBatchText(SpriteBatch batch)
+	{
+		var title = _fontSystem.GetFont(44);
+		var subtitle = _fontSystem.GetFont(18);
+		var section = _fontSystem.GetFont(14);
+		var label = _fontSystem.GetFont(15);
+		var demo = _fontSystem.GetFont(28);
+		var footer = _fontSystem.GetFont(15);
 
-		section.DrawText(_plainRenderer, "RENDERER CONTRACT", new Vector2(56f, 586f), Accent);
+		title.DrawText(_shadowRenderer, "Custom renderers", new Vector2(56f, 28f), Text);
+		subtitle.DrawText(
+			_plainRenderer,
+			"Glyph quads through IFontStashRenderer and four-vertex quads through IFontStashRenderer2.",
+			new Vector2(58f, 86f),
+			Muted);
+		batch.Draw(_pixel, new Rectangle(56, 122, Width - 112, 1), Line);
+
+		section.DrawText(_plainRenderer, "IFONTSTASHRENDERER (GLYPH QUADS)", new Vector2(56f, 146f), Accent);
+		section.DrawText(_plainRenderer, "IFONTSTASHRENDERER2 (VERTEX QUADS)", new Vector2(680f, 146f), Accent);
+
+		label.DrawText(_plainRenderer, "string", new Vector2(56f, 183f), Muted);
+		demo.DrawText(_shadowRenderer, "Simple string overload", new Vector2(220f, 174f), Text);
+
+		label.DrawText(_plainRenderer, "StringBuilder", new Vector2(56f, 243f), Muted);
+		demo.DrawText(_shadowRenderer, _builderText, new Vector2(220f, 234f), Text);
+
+		label.DrawText(_plainRenderer, "ReadOnlySpan<char>", new Vector2(56f, 303f), Muted);
+		demo.DrawText(_shadowRenderer, SpanText.AsSpan(), new Vector2(220f, 294f), Text);
+
+		label.DrawText(_plainRenderer, "full transform", new Vector2(56f, 363f), Muted);
+		const string transformText = "Rotation + scale";
+		demo.DrawText(
+			_shadowRenderer,
+			transformText,
+			new Vector2(400f, 370f),
+			Warm,
+			-0.05f,
+			demo.MeasureString(transformText) * 0.5f,
+			new Vector2(1.1f),
+			SpriteEffects.None,
+			0f);
+
+		label.DrawText(_plainRenderer, "string", new Vector2(680f, 183f), Muted);
+		label.DrawText(_plainRenderer, "full transform", new Vector2(680f, 243f), Muted);
+		label.DrawText(_plainRenderer, "SpriteEffects", new Vector2(680f, 363f), Muted);
+
+		batch.Draw(_pixel, new Rectangle(56, 430, Width - 112, 1), Line);
+
+		section.DrawText(_plainRenderer, "RENDERER CONTRACT", new Vector2(56f, 450f), Accent);
 		label.DrawText(
 			_plainRenderer,
-			"Draw receives the glyph texture, pre-transformed top-left position, source rectangle, color, rotation,",
-			new Vector2(56f, 610f),
+			"IFontStashRenderer receives one pre-transformed glyph quad per call; this renderer draws each glyph twice to add a drop shadow.",
+			new Vector2(56f, 478f),
 			Muted);
 		label.DrawText(
 			_plainRenderer,
-			"scale, SpriteEffects, and layer depth. This sample draws each glyph twice to add a drop shadow.",
-			new Vector2(56f, 630f),
+			"IFontStashRenderer2 receives four screen-space vertices with layer depth in Z and SpriteEffects already baked into the UVs.",
+			new Vector2(56f, 500f),
+			Muted);
+		label.DrawText(
+			_plainRenderer,
+			"Both paths share layout, kerning, fallback, supersampling, rotation, scale, origin, and effects data.",
+			new Vector2(56f, 522f),
 			Muted);
 
 		batch.Draw(_pixel, new Rectangle(0, Height - 40, Width, 40), Panel);
@@ -212,7 +265,7 @@ internal sealed class CustomRendererGame : Game
 			_plainRenderer,
 			string.Create(
 				CultureInfo.InvariantCulture,
-				$"IFontStashRenderer.Draw calls last frame: {_lastDrawCalls}   |   Supersampling: 2x   |   Press Esc to exit   |   --screenshot <file.png>"),
+				$"Renderer1 quads: {_lastRenderer1Calls}   |   Renderer2 quads: {_lastRenderer2Calls}   |   Supersampling: 2x   |   Press Esc to exit   |   --screenshot <file.png>"),
 			new Vector2(56f, Height - 27f),
 			Muted);
 	}
@@ -227,14 +280,8 @@ internal sealed class CustomRendererGame : Game
 		GraphicsDevice.SetRenderTarget(_renderTarget);
 		GraphicsDevice.Clear(Background);
 
-		_batch.Begin(
-			sortMode: SpriteSortMode.Deferred,
-			blendState: BlendState.AlphaBlend,
-			samplerState: SamplerState.LinearClamp);
+		DrawFrame();
 
-		DrawScene(_batch);
-
-		_batch.End();
 		GraphicsDevice.SetRenderTarget(null);
 
 		_screenshotFrames++;
@@ -260,6 +307,7 @@ internal sealed class CustomRendererGame : Game
 
 	protected override void UnloadContent()
 	{
+		_vertexEffect?.Dispose();
 		_fontSystem?.Dispose();
 		_renderTarget?.Dispose();
 		_pixel?.Dispose();
@@ -331,6 +379,64 @@ internal sealed class CustomRendererGame : Game
 				effects,
 				layerDepth);
 			DrawCalls++;
+		}
+	}
+
+	private sealed class VertexFontRenderer : IFontStashRenderer2
+	{
+		private static readonly short[] Indices = { 0, 1, 2, 1, 3, 2 };
+
+		private readonly BasicEffect _effect;
+
+		public VertexFontRenderer(GraphicsDevice graphicsDevice, BasicEffect effect)
+		{
+			GraphicsDevice = graphicsDevice;
+			_effect = effect;
+		}
+
+		public GraphicsDevice GraphicsDevice { get; }
+
+		public int QuadCount { get; private set; }
+
+		public void ResetFrame()
+		{
+			QuadCount = 0;
+		}
+
+		public void Prepare()
+		{
+			GraphicsDevice.BlendState = BlendState.AlphaBlend;
+			GraphicsDevice.DepthStencilState = DepthStencilState.None;
+			GraphicsDevice.RasterizerState = RasterizerState.CullNone;
+			GraphicsDevice.SamplerStates[0] = SamplerState.LinearClamp;
+		}
+
+		public void DrawQuad(
+			Texture2D texture,
+			ref VertexPositionColorTexture topLeft,
+			ref VertexPositionColorTexture topRight,
+			ref VertexPositionColorTexture bottomLeft,
+			ref VertexPositionColorTexture bottomRight)
+		{
+			var vertices = new[]
+			{
+				topLeft,
+				topRight,
+				bottomLeft,
+				bottomRight,
+			};
+
+			_effect.Texture = texture;
+			_effect.CurrentTechnique.Passes[0].Apply();
+			GraphicsDevice.DrawUserIndexedPrimitives(
+				PrimitiveType.TriangleList,
+				vertices,
+				0,
+				4,
+				Indices,
+				0,
+				2);
+			QuadCount++;
 		}
 	}
 }
