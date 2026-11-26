@@ -3,6 +3,10 @@
 This page describes the pipeline from font bytes to `SpriteBatch` quads, and the invariants that keep
 the on-demand atlas consistent.
 
+The same rasterization, packing, measurement, and caching pipeline backs
+`FontStashSharp2.PlatformAgnostic`. That build swaps the graphics device for `ITexture2DManager` and
+exposes only the renderer draw hooks; see [Platform-agnostic rendering](platform-agnostic.md).
+
 ## Object graph
 
 ```

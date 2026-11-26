@@ -209,3 +209,9 @@ afterwards.
 - Bitmap fonts are not supported; a scalable TTF/OTF outline is required.
 - Text colors should be premultiplied when using the default `BlendState.AlphaBlend`. Opaque colors
   such as `Color.White` and `Color.Red` are already premultiplied.
+
+## Platform-agnostic package
+
+For engines other than MonoGame, use `FontStashSharp2.PlatformAgnostic`. It has no MonoGame
+dependency and draws only through `IFontStashRenderer`/`IFontStashRenderer2` plus an engine-supplied
+`ITexture2DManager`. See [Platform-agnostic rendering](articles/platform-agnostic.md).

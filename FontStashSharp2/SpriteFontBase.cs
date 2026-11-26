@@ -1,11 +1,14 @@
 using System.Text;
-using Microsoft.Xna.Framework;
+#if MONOGAME
 using Microsoft.Xna.Framework.Graphics;
+#endif
 
 namespace FontStashSharp2;
 
+#if MONOGAME
 /// <summary>
-/// Base type for fonts that can be measured and drawn through <see cref="SpriteBatch"/>.
+/// Base type for fonts that can be measured and drawn through <see cref="SpriteBatch"/> or a custom
+/// renderer.
 /// </summary>
 /// <remarks>
 /// Instances are usually created by <see cref="FontSystem.GetFont(float)"/>. Custom fonts can derive
@@ -13,6 +16,16 @@ namespace FontStashSharp2;
 /// <see cref="SpriteBatchExtensions"/> and mirror the
 /// <see cref="SpriteBatch.DrawString(SpriteFont, string, Vector2, Color)"/> overload set.
 /// </remarks>
+#else
+/// <summary>
+/// Base type for fonts that can be measured and drawn through a custom renderer.
+/// </summary>
+/// <remarks>
+/// Instances are usually created by <see cref="FontSystem.GetFont(float)"/>. Custom fonts can derive
+/// this type and implement the <see cref="IFontStashRenderer"/> and <see cref="IFontStashRenderer2"/>
+/// draw hooks.
+/// </remarks>
+#endif
 public abstract class SpriteFontBase
 {
 	/// <summary>
@@ -43,6 +56,7 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to measure.</param>
 	public abstract Vector2 MeasureString(StringBuilder text);
 
+#if MONOGAME
 	/// <summary>
 	/// Draws a span of characters into a <see cref="SpriteBatch"/>.
 	/// </summary>
@@ -182,6 +196,8 @@ public abstract class SpriteFontBase
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(spriteBatch, text.ToString().AsSpan(), position, color);
 	}
+
+#endif
 
 	/// <summary>
 	/// Draws a span of characters through a custom <see cref="IFontStashRenderer"/>.

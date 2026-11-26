@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>FontStashSharp2</RootNamespace>
+    <AssemblyName>FontStashSharp2.PlatformAgnostic</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>FontStashSharp2.PlatformAgnostic</PackageId>
+    <Version>0.1.0</Version>
+    <Authors>FontStashSharp2 contributors</Authors>
+    <Description>On-demand TrueType text rendering for any C# game engine.</Description>
+    <PackageTags>font;truetype;text;stb_truetype;gamedev;platform-agnostic</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <RepositoryType>git</RepositoryType>
+    <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <DefineConstants>$(DefineConstants);PLATFORM_AGNOSTIC</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\FontStashSharp2\**\*.cs"
+             Exclude="..\FontStashSharp2\bin\**;..\FontStashSharp2\obj\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" Pack="true" PackagePath="\" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" />
+    <None Include="..\THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" />
+    <None Include="..\docfx\images\hello-world.png" Pack="true" PackagePath="docfx\images\" />
+  </ItemGroup>
+
+</Project>

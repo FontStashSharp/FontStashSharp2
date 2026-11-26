@@ -1,3 +1,4 @@
+#if MONOGAME
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -139,3 +140,4 @@ public static class SpriteBatchExtensions
 		font.DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
 	}
 }
+#endif

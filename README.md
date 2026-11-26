@@ -1,15 +1,15 @@
 # FontStashSharp2
 
-**On-demand TrueType text rendering for MonoGame, drawn through `SpriteBatch`.**
+**On-demand TrueType text rendering for MonoGame and other C# game engines.**
 
 ![Hello World sample](docfx/images/hello-world.png)
 
 ## Overview
 
 FontStashSharp2 parses TTF/OTF fonts with StbTrueTypeNext and rasterizes glyphs into a shared texture
-atlas only when they are first needed. Text is drawn with `SpriteBatch` extension methods that mirror
-the `SpriteFont` API, with configurable supersampling, kerning, font fallback, and custom renderer
-support.
+atlas only when they are first needed. The MonoGame package draws with `SpriteBatch` extension methods
+that mirror the `SpriteFont` API. The `FontStashSharp2.PlatformAgnostic` package uses renderer
+interfaces and an engine-supplied `ITexture2DManager`, so it works without any MonoGame dependency.
 
 ## Why another text library?
 
@@ -19,6 +19,10 @@ support.
 - **Any size, one atlas.** Different font sizes and fallback fonts share one growable atlas.
 - **SpriteBatch native.** The familiar `SpriteFont` parameter list, including rotation, origin, scale,
   effects, and layer depth.
+- **Engine neutral.** `FontStashSharp2.PlatformAgnostic` exposes renderer interfaces and RGBA texture
+  uploads instead of MonoGame types.
+- **AOT friendly.** Both class libraries are annotated `IsAotCompatible` and avoid reflection and
+  runtime code generation.
 - **Sharper scaling.** Glyphs are supersampled 2× by default and drawn at the inverse scale, with a
   configurable factor for heavier zoom.
 

@@ -1,7 +1,8 @@
 using System.Text;
 using FontStashSharp2.Internal;
-using Microsoft.Xna.Framework;
+#if MONOGAME
 using Microsoft.Xna.Framework.Graphics;
+#endif
 
 namespace FontStashSharp2;
 
@@ -9,9 +10,8 @@ namespace FontStashSharp2;
 /// A font of a fixed pixel size whose glyphs are rasterized into a shared atlas on first use.
 /// </summary>
 /// <remarks>
-/// Measurement never rasterizes glyphs. Glyphs enter the atlas only when the text is drawn (or when
-/// <see cref="PreloadGlyphs(SpriteBatch, string)"/> is called). Instances are cached by
-/// <see cref="FontSystem.GetFont(float)"/>.
+/// Measurement never rasterizes glyphs. Glyphs enter the atlas only when text is drawn or preloaded.
+/// Instances are cached by <see cref="FontSystem.GetFont(float)"/>.
 /// </remarks>
 public sealed class DynamicSpriteFont : SpriteFontBase
 {
@@ -195,6 +195,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		return new Vector2(maxLineWidth, lineCount * LineSpacing);
 	}
 
+#if MONOGAME
 	/// <summary>
 	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
 	/// </summary>
@@ -219,6 +220,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 		return PreloadGlyphs(spriteBatch.GraphicsDevice, text);
 	}
+#endif
 
 	/// <summary>
 	/// Rasterizes all glyphs in a string through a custom renderer's device ahead of time.
@@ -230,7 +232,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 		ArgumentNullException.ThrowIfNull(text);
-		return PreloadGlyphs(renderer.GraphicsDevice, text.AsSpan());
+		return PreloadGlyphs(GetDevice(renderer), text.AsSpan());
 	}
 
 	/// <summary>
@@ -242,7 +244,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	public int PreloadGlyphs(IFontStashRenderer renderer, ReadOnlySpan<char> text)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
-		return PreloadGlyphs(renderer.GraphicsDevice, text);
+		return PreloadGlyphs(GetDevice(renderer), text);
 	}
 
 	/// <summary>
@@ -255,7 +257,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 		ArgumentNullException.ThrowIfNull(text);
-		return PreloadGlyphs(renderer.GraphicsDevice, text.AsSpan());
+		return PreloadGlyphs(GetDevice(renderer), text.AsSpan());
 	}
 
 	/// <summary>
@@ -267,38 +269,38 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	public int PreloadGlyphs(IFontStashRenderer2 renderer, ReadOnlySpan<char> text)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
-		return PreloadGlyphs(renderer.GraphicsDevice, text);
+		return PreloadGlyphs(GetDevice(renderer), text);
 	}
 
 	/// <summary>
 	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
 	/// </summary>
-	/// <param name="graphicsDevice">The device used to allocate/upload atlas pages.</param>
+	/// <param name="device">The device or texture manager used to allocate/upload atlas pages.</param>
 	/// <param name="text">The text whose glyphs should be cached.</param>
 	/// <returns>The number of newly rasterized glyphs.</returns>
-	public int PreloadGlyphs(GraphicsDevice graphicsDevice, string text)
+	public int PreloadGlyphs(AtlasDevice device, string text)
 	{
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(device);
 		ArgumentNullException.ThrowIfNull(text);
-		return PreloadGlyphs(graphicsDevice, text.AsSpan());
+		return PreloadGlyphs(device, text.AsSpan());
 	}
 
 	/// <summary>
 	/// Rasterizes all glyphs in a span into the atlas ahead of time, avoiding a first-draw hitch.
 	/// </summary>
-	/// <param name="graphicsDevice">The device used to allocate/upload atlas pages.</param>
+	/// <param name="device">The device or texture manager used to allocate/upload atlas pages.</param>
 	/// <param name="text">The text whose glyphs should be cached.</param>
 	/// <returns>The number of newly rasterized glyphs.</returns>
-	public int PreloadGlyphs(GraphicsDevice graphicsDevice, ReadOnlySpan<char> text)
+	public int PreloadGlyphs(AtlasDevice device, ReadOnlySpan<char> text)
 	{
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(device);
 
 		if (text.IsEmpty)
 		{
 			return 0;
 		}
 
-		return PreloadGlyphs(_fontSystem.GetAtlas(graphicsDevice), graphicsDevice, text);
+		return PreloadGlyphs(_fontSystem.GetAtlas(device), device, text);
 	}
 
 	internal int PreloadGlyphs(IGlyphAtlas atlas, string text)
@@ -313,7 +315,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		return PreloadGlyphs(atlas, null, text);
 	}
 
-	internal int PreloadGlyphs(IGlyphAtlas atlas, GraphicsDevice? graphicsDevice, ReadOnlySpan<char> text)
+	internal int PreloadGlyphs(IGlyphAtlas atlas, AtlasDevice? device, ReadOnlySpan<char> text)
 	{
 		ArgumentNullException.ThrowIfNull(atlas);
 
@@ -338,12 +340,13 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					break;
 			}
 
-			_glyphCache.GetRenderedGlyph(codepoint, atlas, graphicsDevice);
+			_glyphCache.GetRenderedGlyph(codepoint, atlas, device);
 		}
 
 		return _glyphCache.RasterizedGlyphCount - before;
 	}
 
+#if MONOGAME
 	/// <inheritdoc />
 	public override void DrawText(
 		SpriteBatch spriteBatch,
@@ -476,6 +479,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
+#endif
+
 	/// <inheritdoc />
 	public override void DrawText(
 		IFontStashRenderer renderer,
@@ -495,7 +500,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var device = renderer.GraphicsDevice;
+		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
@@ -506,7 +511,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		var penX = 0f;
 		var hasPrevious = false;
 		var previous = default(GlyphMetrics);
-		Texture2D? texture = null;
+		AtlasTexture? texture = null;
 		var textureIndex = -1;
 		var drawScale = new Vector2(
 			scale.X * _inverseSupersamplingFactor,
@@ -579,7 +584,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 						position.Y + (localX * sin) + (localY * cos));
 				}
 
-				renderer.Draw(
+				DrawGlyph(
+					renderer,
 					texture!,
 					screenPosition,
 					glyph.SourceRectangle,
@@ -615,7 +621,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var device = renderer.GraphicsDevice;
+		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
@@ -626,8 +632,10 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		var penX = 0f;
 		var hasPrevious = false;
 		var previous = default(GlyphMetrics);
-		Texture2D? texture = null;
+		AtlasTexture? texture = null;
 		var textureIndex = -1;
+		var textureWidth = 0;
+		var textureHeight = 0;
 		var drawScale = new Vector2(
 			scale.X * _inverseSupersamplingFactor,
 			scale.Y * _inverseSupersamplingFactor);
@@ -679,6 +687,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				if (glyph.TextureIndex != textureIndex)
 				{
 					texture = _fontSystem.GetTextureOrThrow(glyph.TextureIndex);
+					var textureSize = GetTextureSize(renderer, texture!);
+					textureWidth = textureSize.X;
+					textureHeight = textureSize.Y;
 					textureIndex = glyph.TextureIndex;
 				}
 
@@ -707,10 +718,10 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				var down = new Vector2(-quadHeight * sin, quadHeight * cos);
 
 				var source = glyph.SourceRectangle;
-				var u0 = source.X / (float)texture!.Width;
-				var v0 = source.Y / (float)texture.Height;
-				var u1 = (source.X + source.Width) / (float)texture.Width;
-				var v1 = (source.Y + source.Height) / (float)texture.Height;
+				var u0 = source.X / (float)textureWidth;
+				var v0 = source.Y / (float)textureHeight;
+				var u1 = (source.X + source.Width) / (float)textureWidth;
+				var v1 = (source.Y + source.Height) / (float)textureHeight;
 
 				if (flipHorizontally)
 				{
@@ -739,7 +750,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					color,
 					new Vector2(u1, v1));
 
-				renderer.DrawQuad(texture, ref topLeft, ref topRight, ref bottomLeft, ref bottomRight);
+				renderer.DrawQuad(texture!, ref topLeft, ref topRight, ref bottomLeft, ref bottomRight);
 			}
 
 			penX += glyph.Metrics.Advance;
@@ -748,6 +759,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
+#if MONOGAME
 	private void DrawTextDefault(SpriteBatch spriteBatch, ReadOnlySpan<char> text, Vector2 position, Color color)
 	{
 		var device = spriteBatch.GraphicsDevice;
@@ -834,6 +846,53 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			hasPrevious = true;
 			previous = glyph.Metrics;
 		}
+	}
+
+#endif
+
+	private static AtlasDevice GetDevice(IFontStashRenderer renderer)
+	{
+#if MONOGAME
+		return renderer.GraphicsDevice;
+#else
+		return renderer.TextureManager;
+#endif
+	}
+
+	private static AtlasDevice GetDevice(IFontStashRenderer2 renderer)
+	{
+#if MONOGAME
+		return renderer.GraphicsDevice;
+#else
+		return renderer.TextureManager;
+#endif
+	}
+
+	private static Point GetTextureSize(IFontStashRenderer2 renderer, AtlasTexture texture)
+	{
+#if MONOGAME
+		return new Point(texture.Width, texture.Height);
+#else
+		return renderer.TextureManager.GetTextureSize(texture);
+#endif
+	}
+
+	private static void DrawGlyph(
+		IFontStashRenderer renderer,
+		AtlasTexture texture,
+		Vector2 position,
+		Rectangle? sourceRectangle,
+		Color color,
+		float rotation,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth)
+	{
+#if MONOGAME
+		renderer.Draw(texture, position, sourceRectangle, color, rotation, scale, effects, layerDepth);
+#else
+		renderer.DrawText(texture, position, sourceRectangle, color, rotation, scale, effects, layerDepth);
+#endif
 	}
 
 	private static int ReadCodepoint(ReadOnlySpan<char> text, ref int index)

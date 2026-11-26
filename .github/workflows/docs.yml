@@ -9,6 +9,7 @@ on:
       - ".config/dotnet-tools.json"
       - "Directory.Build.props"
       - "FontStashSharp2/**"
+      - "FontStashSharp2.PlatformAgnostic/**"
       - "docfx/**"
   workflow_dispatch:
 

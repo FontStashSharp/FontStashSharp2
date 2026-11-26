@@ -1,5 +1,3 @@
-using Microsoft.Xna.Framework;
-
 namespace FontStashSharp2.Internal;
 
 internal readonly struct GlyphMetrics

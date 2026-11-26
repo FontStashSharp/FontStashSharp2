@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using FontStashSharp2.Internal;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace FontStashSharp2;
 
@@ -9,14 +8,13 @@ namespace FontStashSharp2;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A font system does not require a <see cref="GraphicsDevice"/> at construction time. The atlas is
-/// created lazily from the device supplied by the first <see cref="SpriteBatch"/>,
-/// <see cref="IFontStashRenderer"/>, or <see cref="IFontStashRenderer2"/> draw/preload call. This
-/// allows measurement without a GPU and lets the library work with any MonoGame backend.
+/// A font system does not require a graphics device at construction time. The atlas is created lazily
+/// from the device supplied by the first renderer draw/preload call. This allows measurement without
+/// a GPU.
 /// </para>
 /// <para>
-/// One font system is bound to one <see cref="GraphicsDevice"/>. Create a separate font system per
-/// device. Instances are not thread-safe.
+/// One font system is bound to one graphics device or texture manager. Create a separate font system
+/// per device. Instances are not thread-safe.
 /// </para>
 /// </remarks>
 public sealed class FontSystem : IDisposable
@@ -77,13 +75,13 @@ public sealed class FontSystem : IDisposable
 
 	internal float SupersamplingFactor => _settings.SupersamplingFactor;
 
-	internal IGlyphAtlas GetAtlas(GraphicsDevice graphicsDevice)
+	internal IGlyphAtlas GetAtlas(AtlasDevice device)
 	{
 		ThrowIfDisposed();
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(device);
 
 		_atlas ??= new TextureAtlas(_settings);
-		_atlas.ValidateDevice(graphicsDevice);
+		_atlas.ValidateDevice(device);
 		return _atlas;
 	}
 
@@ -181,7 +179,7 @@ public sealed class FontSystem : IDisposable
 	/// No atlas has been created yet. Draw or preload text first.
 	/// </exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of range.</exception>
-	public Texture2D GetTexture(int index)
+	public AtlasTexture GetTexture(int index)
 	{
 		ThrowIfDisposed();
 
@@ -211,7 +209,7 @@ public sealed class FontSystem : IDisposable
 		_fontSources.Clear();
 	}
 
-	internal Texture2D GetTextureOrThrow(int index)
+	internal AtlasTexture GetTextureOrThrow(int index)
 	{
 		ThrowIfDisposed();
 

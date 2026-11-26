@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>FontStashSharp2</RootNamespace>
+    <DefineConstants>$(DefineConstants);MONOGAME</DefineConstants>
     <AssemblyName>FontStashSharp2</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FontStashSharp2</PackageId>
@@ -14,6 +15,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
     <IsPackable>true</IsPackable>
+    <IsAotCompatible>true</IsAotCompatible>
   </PropertyGroup>
 
   <ItemGroup>

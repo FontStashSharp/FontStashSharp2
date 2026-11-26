@@ -5,9 +5,11 @@ changing code. Read it before making non-trivial edits.
 
 ## What this project is
 
-A small text rendering library for MonoGame (.NET 8 / C# 12). It parses TrueType/OpenType fonts with
-**StbTrueTypeNext** and rasterizes glyphs on demand into a shared texture atlas. Public draw methods
-are `SpriteBatch` extension methods that mirror the `SpriteFont` overload set.
+A small text rendering library for MonoGame and other C# game engines (.NET 8 / C# 12). It parses
+TrueType/OpenType fonts with **StbTrueTypeNext** and rasterizes glyphs on demand into a shared texture
+atlas. The MonoGame build draws through `SpriteBatch` extension methods that mirror the `SpriteFont`
+API. The platform-agnostic build has no MonoGame dependency and draws only through
+`IFontStashRenderer`/`IFontStashRenderer2` using an engine-supplied `ITexture2DManager`.
 
 Do **not** copy implementation code or architecture from the upstream FontStashSharp project. This is
 an independent implementation. Familiar public API shape is fine; internals should be our own.
@@ -17,12 +19,18 @@ an independent implementation. Familiar public API shape is fine; internals shou
 ```bash
 dotnet build FontStashSharp2.MonoGame.sln
 dotnet test FontStashSharp2.Tests/FontStashSharp2.Tests.csproj
+dotnet build FontStashSharp2.PlatformAgnostic.sln
+dotnet test FontStashSharp2.PlatformAgnostic.Tests/FontStashSharp2.PlatformAgnostic.Tests.csproj
 dotnet run --project Samples/HelloWorld
 dotnet run --project Samples/MeasureText
 dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
 dotnet run --project Samples/Supersampling
 dotnet run --project Samples/CustomRenderer
+dotnet run --project Samples/OpenTK
+dotnet run --project Samples/SilkNet
+dotnet run --project Samples/OpenTK -- --frames 3
+dotnet run --project Samples/SilkNet -- --frames 3
 dotnet run --project Samples/HelloWorld -- --screenshot out.png
 dotnet run --project Samples/Benchmark -- --screenshot benchmark.png
 dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
@@ -60,10 +68,17 @@ FontStashSharp2/
     IGlyphAtlas.cs          test seam; fake atlases record glyphs without a GPU
     Glyphs.cs               metrics/rendered-glyph/placement value types
 FontStashSharp2.Tests/      xUnit tests; Fonts/ABeeZee-Regular.ttf is the fixture
+FontStashSharp2.PlatformAgnostic/
+  FontStashSharp2.PlatformAgnostic.csproj
+                            links the shared sources without MonoGame; PLATFORM_AGNOSTIC defined
+FontStashSharp2.PlatformAgnostic.Tests/
+                            renderer/atlas tests using a fake ITexture2DManager
 Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
 Samples/CustomRenderer/     IFontStashRenderer + IFontStashRenderer2 sample
+Samples/OpenTK/             platform-agnostic OpenTK/OpenGL renderer sample
+Samples/SilkNet/            platform-agnostic Silk.NET/OpenGL renderer sample
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
 docfx/                      docfx.json, articles, API reference, screenshots
 ```
@@ -81,6 +96,28 @@ The atlas is created on the first draw or preload from the `SpriteBatch`, `IFont
 `IFontStashRenderer2` device. A different device must use a separate `FontSystem`. Public
 `PreloadGlyphs` overloads therefore require a batch/renderer/device; tests use the internal fake-atlas
 overload.
+
+### AOT and trimming
+
+- Both class libraries (`FontStashSharp2.MonoGame` and `FontStashSharp2.PlatformAgnostic`) set
+  `IsAotCompatible`; keep them free of reflection, runtime code generation, and trim-unsafe APIs.
+- Sample and test projects are applications/test hosts, not libraries. Do not add `PublishAot` or
+  `IsAotCompatible` to them.
+- The shared pipeline uses only static generics, dictionaries, `ArrayPool`, `System.Numerics`, and
+  StbTrueTypeNext; it contains no unsafe blocks, P/Invoke, or reflection. Keep it that way.
+
+### Platform-agnostic build
+
+- `FontStashSharp2.PlatformAgnostic` compiles the shared sources with `PLATFORM_AGNOSTIC`; the MonoGame
+  project compiles them with `MONOGAME`. Use `#if MONOGAME` / `#else` for divergent types and APIs.
+- The platform-agnostic build must not reference MonoGame. `ITexture2DManager` is its only device
+  abstraction: atlas textures are `object`, and uploads are row-major RGBA bytes.
+- Its public draw surface consists only of `SpriteFontBase.DrawText` overloads that accept
+  `IFontStashRenderer` or `IFontStashRenderer2`. Do not add `SpriteBatch` overloads or MonoGame types.
+- One `FontSystem` is bound to one `ITexture2DManager`; atlas pages remember their manager and a second
+  manager throws. `ITexture2DManager.DestroyTexture` is called from `FontSystem.Dispose`.
+- `ITexture2DManager.SetTextureData` receives `ReadOnlySpan<byte>` with
+  `bounds.Width * bounds.Height * 4` RGBA bytes. Never change this to BGRA or skip the alpha channel.
 
 ### Coordinates and layout
 
@@ -106,10 +143,12 @@ overload.
   rectangles exclude the padding.
 - `SupersamplingFactor` (default 2) multiplies glyph pixel dimensions; atlas usage grows roughly with
   the square of the factor. Do not apply the factor to advances, kerning, or line metrics.
-- Texture pages are `SurfaceFormat.Color` and premultiplied by default (RGB = alpha).
+- MonoGame texture pages are `SurfaceFormat.Color`; both builds upload RGBA and premultiply by default
+  (RGB = alpha).
 - `TextureAtlas` is lock-protected. `FontSystem`, fonts, and `GlyphCache` are **not** thread-safe.
 - Uploading a newly rasterized glyph may happen between `SpriteBatch.Draw` calls; do not introduce
-  `GraphicsDevice.SetData` calls in a way that requires a batch flush.
+  `GraphicsDevice.SetData`/`ITexture2DManager.SetTextureData` calls in a way that requires a batch
+  flush.
 
 ### Draw-path performance
 
@@ -127,13 +166,13 @@ overload.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth).
-- `SpriteFontBase` is the font parameter type. Its public abstract span-based `DrawText` hooks accept
-  a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; `string`/`StringBuilder` and
-  position/color overloads delegate to them. Custom fonts derive the type and implement all three span
-  hooks. The extension methods call the SpriteBatch hook.
-- `IFontStashRenderer.Draw` receives pre-transformed glyph positions (origin zero) and includes
-  `SpriteEffects` so flips are representable. Do not remove the effects parameter; the generic draw
-  path relies on it.
+- `SpriteFontBase` is the font parameter type. In the MonoGame build its public abstract span-based
+  `DrawText` hooks accept a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; the
+  platform-agnostic build exposes only the two renderer hooks. `string`/`StringBuilder` and
+  position/color overloads delegate to them.
+- MonoGame `IFontStashRenderer.Draw` and platform-agnostic `IFontStashRenderer.DrawText` receive
+  pre-transformed glyph positions (origin zero) and include `SpriteEffects` so flips are representable.
+  Do not remove the effects parameter; the generic draw path relies on it.
 - `IFontStashRenderer2.DrawQuad` receives four screen-space vertices. `Position.Z` is the layer depth
   and texture coordinates already include `SpriteEffects` mirroring; do not apply origin transforms or
   flip UVs again in the renderer.
@@ -145,7 +184,10 @@ overload.
 ## Tests
 
 Tests use a fake `IGlyphAtlas` so caching/rasterization can be tested without a GPU. Prefer this seam
-over spinning up MonoGame in unit tests. `Samples/HelloWorld --screenshot` is the visual integration
+over spinning up MonoGame in unit tests. The platform-agnostic tests use a fake `ITexture2DManager` and
+recording renderers, so they also run without a GPU. `Samples/OpenTK` and `Samples/SilkNet` are the
+windowed platform-agnostic integration samples; both accept `--frames <n>` for a bounded smoke test.
+`Samples/HelloWorld --screenshot` is the visual integration
 check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen;
 `Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison;
 `Samples/CustomRenderer --screenshot` verifies the custom renderer overloads end-to-end. Keep tests
@@ -182,8 +224,8 @@ When adding behavior, add tests for:
 ## Docs
 
 Public API XML documentation is required (`GenerateDocumentationFile` is on). Keep `README.md`,
-`docfx/articles/*.md` (including `supersampling.md` and `custom-renderers.md`), and `AGENTS.md` in
-sync when behavior or public API changes. Regenerate API
+`docfx/articles/*.md` (including `supersampling.md`, `custom-renderers.md`, and
+`platform-agnostic.md`), and `AGENTS.md` in sync when behavior or public API changes. Regenerate API
 docs with docfx; `docfx/api/` and `docfx/_site/` are generated and git-ignored.
 
 ## Style

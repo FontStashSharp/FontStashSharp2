@@ -128,9 +128,8 @@ public sealed class FontSystemSettings
 	/// Gets or sets whether glyph alpha is premultiplied into RGB. Defaults to <see langword="true"/>.
 	/// </summary>
 	/// <remarks>
-	/// The default <see cref="Microsoft.Xna.Framework.Graphics.BlendState.AlphaBlend"/> mode expects
-	/// premultiplied textures. Set this to <see langword="false"/> only when drawing with a
-	/// non-premultiplied blend state.
+	/// Standard alpha blending expects premultiplied textures. Set this to <see langword="false"/>
+	/// only when drawing with a non-premultiplied blend state.
 	/// </remarks>
 	public bool PremultiplyAlpha { get; set; } = true;
 

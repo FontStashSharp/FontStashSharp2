@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>OpenTKSample</RootNamespace>
+    <AssemblyName>OpenTKSample</AssemblyName>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="OpenTK" Version="4.9.4" />
+    <ProjectReference Include="..\..\FontStashSharp2.PlatformAgnostic\FontStashSharp2.PlatformAgnostic.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Content\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

@@ -1,5 +1,7 @@
 - name: Getting started
   href: ../index.md
+- name: Platform-agnostic rendering
+  href: platform-agnostic.md
 - name: Supersampling
   href: supersampling.md
 - name: Custom renderers

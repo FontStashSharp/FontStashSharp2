@@ -4,6 +4,9 @@ FontStashSharp2 can draw through an arbitrary renderer, not only `SpriteBatch`. 
 `IFontStashRenderer` interface receives one glyph quad at a time, with the font's layout, kerning,
 supersampling, rotation, scaling, and flip math already applied.
 
+> These interfaces use MonoGame types. For engines without MonoGame, see
+> [Platform-agnostic rendering](platform-agnostic.md).
+
 ## Interface
 
 ```csharp

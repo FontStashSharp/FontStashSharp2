@@ -1,7 +1,8 @@
 # Samples
 
-The repository contains five samples. The windowed samples also support screenshot modes that double
-as integration tests.
+The repository contains seven samples. The MonoGame windowed samples also support screenshot modes that
+double as integration tests; the platform-agnostic samples accept `--frames <n>` for bounded smoke
+tests.
 
 ## HelloWorld (DesktopGL)
 
@@ -75,6 +76,38 @@ The sample exercises the `string`, `StringBuilder`, `ReadOnlySpan<char>`, full t
 scale, origin), and `SpriteEffects` overloads on both interfaces. The footer shows glyph-quad and
 vertex-quad counts from the previous frame. See [Custom renderers](custom-renderers.md) for both
 interface contracts and the renderer implementation guide.
+
+## OpenTK (platform-agnostic)
+
+A minimal OpenGL 3.3 text renderer built on `FontStashSharp2.PlatformAgnostic` and OpenTK:
+
+- implements `ITexture2DManager` with OpenGL textures (`TexImage2D`/`TexSubImage2D`);
+- implements `IFontStashRenderer` with a shader, a unit-quad VBO, and one draw per glyph;
+- loads the TTF at runtime, draws rotated/scaled text and `SpriteEffects` flips;
+- sets `PremultiplyAlpha = false` and uses standard `SrcAlpha`/`OneMinusSrcAlpha` blending.
+
+```bash
+dotnet run --project Samples/OpenTK
+dotnet run --project Samples/OpenTK -- --frames 3
+```
+
+Press `Esc` to exit. See [Platform-agnostic rendering](platform-agnostic.md) for the interface contracts.
+
+## Silk.NET (platform-agnostic)
+
+The same renderer shape with Silk.NET windowing and OpenGL bindings:
+
+- `SilkGlTextureManager` creates and updates OpenGL textures;
+- `SilkGlTextRenderer` implements `IFontStashRenderer` with a GLSL 330 shader;
+- shares the same font/atlas pipeline with the OpenTK and MonoGame builds.
+
+```bash
+dotnet run --project Samples/SilkNet
+dotnet run --project Samples/SilkNet -- --frames 3
+```
+
+Close the window to exit. See [Platform-agnostic rendering](platform-agnostic.md) for the interface
+contracts.
 
 ## MeasureText (console)
 

@@ -1,6 +1,7 @@
 using System.Buffers;
-using Microsoft.Xna.Framework;
+#if MONOGAME
 using Microsoft.Xna.Framework.Graphics;
+#endif
 
 namespace FontStashSharp2.Internal;
 
@@ -40,20 +41,20 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		}
 	}
 
-	public void ValidateDevice(GraphicsDevice graphicsDevice)
+	public void ValidateDevice(AtlasDevice device)
 	{
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(device);
 
 		lock (_sync)
 		{
 			ObjectDisposedException.ThrowIf(_disposed, this);
-			ValidateDeviceCore(graphicsDevice);
+			ValidateDeviceCore(device);
 		}
 	}
 
-	public GlyphPlacement Add(GraphicsDevice? graphicsDevice, ReadOnlySpan<byte> alphaBitmap, int width, int height)
+	public GlyphPlacement Add(AtlasDevice? device, ReadOnlySpan<byte> alphaBitmap, int width, int height)
 	{
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(device);
 
 		if (width <= 0)
 		{
@@ -73,7 +74,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		lock (_sync)
 		{
 			ObjectDisposedException.ThrowIf(_disposed, this);
-			ValidateDeviceCore(graphicsDevice);
+			ValidateDeviceCore(device);
 
 			var slotWidth = checked(width + (_padding * 2));
 			var slotHeight = checked(height + (_padding * 2));
@@ -107,7 +108,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 						"Increase FontSystemSettings.MaxTextureCount or use fewer font sizes.");
 				}
 
-				page = CreatePage(graphicsDevice);
+				page = CreatePage(device);
 				_pages.Add(page);
 
 				if (!page.Packer.TryPack(slotWidth, slotHeight, out slotX, out slotY))
@@ -123,12 +124,20 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 			try
 			{
 				BuildPaddedRgba(alphaBitmap, width, height, slotWidth, slotHeight, data);
+
+#if MONOGAME
 				page.Texture.SetData(
 					0,
 					new Rectangle(slotX, slotY, slotWidth, slotHeight),
 					data,
 					0,
 					dataLength);
+#else
+				page.TextureManager.SetTextureData(
+					page.Texture,
+					new Rectangle(slotX, slotY, slotWidth, slotHeight),
+					data.AsSpan(0, dataLength));
+#endif
 			}
 			finally
 			{
@@ -141,7 +150,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		}
 	}
 
-	public Texture2D GetTexture(int index)
+	public AtlasTexture GetTexture(int index)
 	{
 		lock (_sync)
 		{
@@ -169,25 +178,38 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 
 			foreach (var page in _pages)
 			{
+#if MONOGAME
 				page.Texture.Dispose();
+#else
+				page.TextureManager.DestroyTexture(page.Texture);
+#endif
 			}
 
 			_pages.Clear();
 		}
 	}
 
-	private void ValidateDeviceCore(GraphicsDevice graphicsDevice)
+	private void ValidateDeviceCore(AtlasDevice device)
 	{
-		if (_pages.Count > 0 && !ReferenceEquals(_pages[0].Texture.GraphicsDevice, graphicsDevice))
+#if MONOGAME
+		if (_pages.Count > 0 && !ReferenceEquals(_pages[0].Texture.GraphicsDevice, device))
 		{
 			throw new InvalidOperationException(
 				"This FontSystem already owns an atlas for a different GraphicsDevice. Create one FontSystem per graphics device.");
 		}
+#else
+		if (_pages.Count > 0 && !ReferenceEquals(_pages[0].TextureManager, device))
+		{
+			throw new InvalidOperationException(
+				"This FontSystem already owns an atlas for a different ITexture2DManager. Create one FontSystem per texture manager.");
+		}
+#endif
 	}
 
-	private Page CreatePage(GraphicsDevice graphicsDevice)
+	private Page CreatePage(AtlasDevice device)
 	{
-		var texture = new Texture2D(graphicsDevice, _width, _height, false, SurfaceFormat.Color)
+#if MONOGAME
+		var texture = new Texture2D(device, _width, _height, false, SurfaceFormat.Color)
 		{
 			Name = $"FontStashSharp2.Atlas{_pages.Count}",
 		};
@@ -195,6 +217,16 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		// New texture memory is undefined; clear it once so untouched pixels are transparent.
 		texture.SetData(new byte[_width * _height * 4]);
 		return new Page(texture, _pages.Count, _width, _height);
+#else
+		var texture = device.CreateTexture(_width, _height);
+
+		// New texture memory is undefined; clear it once so untouched pixels are transparent.
+		device.SetTextureData(
+			texture,
+			new Rectangle(0, 0, _width, _height),
+			new byte[_width * _height * 4]);
+		return new Page(texture, device, _pages.Count, _width, _height);
+#endif
 	}
 
 	private void BuildPaddedRgba(
@@ -245,14 +277,26 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 
 	private sealed class Page
 	{
-		public Page(Texture2D texture, int index, int width, int height)
+#if MONOGAME
+		public Page(AtlasTexture texture, int index, int width, int height)
 		{
 			Texture = texture;
 			Index = index;
 			Packer = new ShelfPacker(width, height);
 		}
+#else
+		public Page(AtlasTexture texture, ITexture2DManager textureManager, int index, int width, int height)
+		{
+			Texture = texture;
+			TextureManager = textureManager;
+			Index = index;
+			Packer = new ShelfPacker(width, height);
+		}
 
-		public Texture2D Texture { get; }
+		public ITexture2DManager TextureManager { get; }
+#endif
+
+		public AtlasTexture Texture { get; }
 
 		public int Index { get; }
 
