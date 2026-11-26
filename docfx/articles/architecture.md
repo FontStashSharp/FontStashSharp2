@@ -10,9 +10,10 @@ FontSystem ── owns ──> FontSource[] (fallback order)
     │                        │
     │                        └── StbTrueTypeNext.STBFont (parsed tables, read-only)
     │
-    ├── owns ──> TextureAtlas (shared pages, lock-protected)
-    │                 ├── ShelfPacker per page
-    │                 └── Texture2D per page
+    ├── lazily owns ──> TextureAtlas (shared pages, lock-protected)
+    │                       │  created from the first SpriteBatch/renderer device
+    │                       ├── ShelfPacker per page
+    │                       └── Texture2D per page
     │
     └── caches ──> DynamicSpriteFont per float size
                         ├── FontSize, Ascent, Descent, LineGap, LineSpacing
@@ -21,6 +22,10 @@ FontSystem ── owns ──> FontSource[] (fallback order)
                               ├── Dictionary<codepoint, RenderedGlyph>
                               └── Dictionary<kerning pair, float>
 ```
+
+A `FontSystem` is device-agnostic at construction. The first draw or preload supplies a
+`GraphicsDevice` from `SpriteBatch`, `IFontStashRenderer`, or `IFontStashRenderer2`; the atlas is bound
+to that device. Use one `FontSystem` per device.
 
 ## Loading
 
@@ -53,7 +58,7 @@ GlyphCache.GetRenderedGlyph(codepoint)
 ```
 
 `MeasureString` stops at `GetMetrics`; it never calls `CreateGlyphBitmap` or the atlas. This is what
-makes a measurement-only `FontSystem` possible and keeps `GlyphCount` at zero until drawing.
+makes measurement device-agnostic and keeps `GlyphCount` at zero until drawing.
 
 ## Text layout
 

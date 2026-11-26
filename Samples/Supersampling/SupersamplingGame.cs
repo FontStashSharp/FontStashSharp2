@@ -277,7 +277,6 @@ internal sealed class SupersamplingGame : Game
 	private FontSystem CreateFontSystem(float supersamplingFactor)
 	{
 		return new FontSystem(
-			GraphicsDevice,
 			new FontSystemSettings
 			{
 				TextureWidth = 1024,

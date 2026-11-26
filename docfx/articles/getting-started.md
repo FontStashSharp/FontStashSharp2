@@ -26,7 +26,8 @@ There is no content pipeline step. Copy the font next to the executable:
 
 ## 3. Create a font system and load a font
 
-Create the `FontSystem` after the `GraphicsDevice` exists (typically in `LoadContent`):
+Create the `FontSystem` anywhere; it does not take a `GraphicsDevice`. The atlas is created from the
+first `SpriteBatch`/renderer device when text is drawn or preloaded:
 
 ```csharp
 using FontStashSharp2;
@@ -36,7 +37,7 @@ private DynamicSpriteFont _font = null!;
 
 protected override void LoadContent()
 {
-    _fonts = new FontSystem(GraphicsDevice, new FontSystemSettings
+    _fonts = new FontSystem(new FontSystemSettings
     {
         TextureWidth = 1024,
         TextureHeight = 1024,
@@ -134,10 +135,12 @@ only within a single source.
 Rasterize the glyphs for known UI strings while loading:
 
 ```csharp
-int added = _font.PreloadGlyphs("Score: 0000  Lives: 3");
+int added = _font.PreloadGlyphs(_spriteBatch, "Score: 0000  Lives: 3");
 ```
 
-This uses the same cache as drawing, so the first real draw is upload-free.
+The `SpriteBatch`, `IFontStashRenderer`, `IFontStashRenderer2`, or `GraphicsDevice` overload supplies
+the device used to allocate and upload the atlas. This uses the same cache as drawing, so the first
+real draw is upload-free.
 
 ## 8. Inspect the atlas
 
@@ -148,12 +151,12 @@ Console.WriteLine($"Resolved code points: {_font.CachedGlyphCount}");
 ```
 
 `GlyphCount` counts glyphs uploaded to the atlas. Measurement leaves it at zero, which is a useful
-sanity check for the on-demand behavior. `FontSystem.GetTexture(index)` exposes atlas pages for
-debugging (do not dispose them).
+sanity check for the on-demand behavior. `TextureCount` is 0 until the first draw/preload creates the
+atlas. `FontSystem.GetTexture(index)` exposes atlas pages for debugging (do not dispose them).
 
-## 9. Measurement-only systems
+## 9. Measurement and device binding
 
-For tools, server-side layout, or tests, omit the graphics device:
+A `FontSystem` is device-agnostic, so measurement works immediately without any GPU resources:
 
 ```csharp
 using var fonts = new FontSystem();
@@ -162,8 +165,8 @@ var font = fonts.GetFont(24f);
 Vector2 size = font.MeasureString("Measured without a GPU");
 ```
 
-Drawing or preloading on such a system throws `InvalidOperationException` with a message explaining
-that a `GraphicsDevice` is required.
+The first draw or preload supplies a `GraphicsDevice` from the `SpriteBatch` or renderer and the atlas
+is created then. One `FontSystem` is bound to one device; create a separate system per device.
 
 ## 10. Dispose
 

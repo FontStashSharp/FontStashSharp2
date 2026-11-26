@@ -9,7 +9,6 @@ namespace FontStashSharp2.Internal;
 /// </summary>
 internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 {
-	private readonly GraphicsDevice _graphicsDevice;
 	private readonly int _width;
 	private readonly int _height;
 	private readonly int _padding;
@@ -19,12 +18,10 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 	private readonly object _sync = new();
 	private bool _disposed;
 
-	public TextureAtlas(GraphicsDevice graphicsDevice, FontSystemSettings settings)
+	public TextureAtlas(FontSystemSettings settings)
 	{
-		ArgumentNullException.ThrowIfNull(graphicsDevice);
 		ArgumentNullException.ThrowIfNull(settings);
 
-		_graphicsDevice = graphicsDevice;
 		_width = settings.TextureWidth;
 		_height = settings.TextureHeight;
 		_padding = settings.GlyphPadding;
@@ -43,8 +40,21 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		}
 	}
 
-	public GlyphPlacement Add(ReadOnlySpan<byte> alphaBitmap, int width, int height)
+	public void ValidateDevice(GraphicsDevice graphicsDevice)
 	{
+		ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+		lock (_sync)
+		{
+			ObjectDisposedException.ThrowIf(_disposed, this);
+			ValidateDeviceCore(graphicsDevice);
+		}
+	}
+
+	public GlyphPlacement Add(GraphicsDevice? graphicsDevice, ReadOnlySpan<byte> alphaBitmap, int width, int height)
+	{
+		ArgumentNullException.ThrowIfNull(graphicsDevice);
+
 		if (width <= 0)
 		{
 			throw new ArgumentOutOfRangeException(nameof(width), width, "Bitmap width must be positive.");
@@ -63,6 +73,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		lock (_sync)
 		{
 			ObjectDisposedException.ThrowIf(_disposed, this);
+			ValidateDeviceCore(graphicsDevice);
 
 			var slotWidth = checked(width + (_padding * 2));
 			var slotHeight = checked(height + (_padding * 2));
@@ -96,7 +107,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 						"Increase FontSystemSettings.MaxTextureCount or use fewer font sizes.");
 				}
 
-				page = CreatePage();
+				page = CreatePage(graphicsDevice);
 				_pages.Add(page);
 
 				if (!page.Packer.TryPack(slotWidth, slotHeight, out slotX, out slotY))
@@ -165,9 +176,18 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		}
 	}
 
-	private Page CreatePage()
+	private void ValidateDeviceCore(GraphicsDevice graphicsDevice)
 	{
-		var texture = new Texture2D(_graphicsDevice, _width, _height, false, SurfaceFormat.Color)
+		if (_pages.Count > 0 && !ReferenceEquals(_pages[0].Texture.GraphicsDevice, graphicsDevice))
+		{
+			throw new InvalidOperationException(
+				"This FontSystem already owns an atlas for a different GraphicsDevice. Create one FontSystem per graphics device.");
+		}
+	}
+
+	private Page CreatePage(GraphicsDevice graphicsDevice)
+	{
+		var texture = new Texture2D(graphicsDevice, _width, _height, false, SurfaceFormat.Color)
 		{
 			Name = $"FontStashSharp2.Atlas{_pages.Count}",
 		};

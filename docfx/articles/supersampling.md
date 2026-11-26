@@ -12,7 +12,7 @@ drawing them at an inverse scale.
 `FontSystemSettings.SupersamplingFactor` controls the multiplier:
 
 ```csharp
-var fonts = new FontSystem(GraphicsDevice, new FontSystemSettings
+var fonts = new FontSystem(new FontSystemSettings
 {
     SupersamplingFactor = 2f, // 1 disables supersampling
 });
@@ -70,7 +70,8 @@ extreme zoom.
 - Rotation, origin, non-uniform scale, flips, and layer depth are supported. The library divides the
   draw scale by the supersampling factor while keeping layout coordinates logical.
 - The factor is fixed for a `FontSystem`; changing it means creating a new `FontSystem`.
-- Measurement-only systems do not allocate glyph atlases, with or without supersampling.
+- Measurement does not allocate glyph atlases, with or without supersampling; the atlas is created
+  from the first renderer/SpriteBatch device.
 
 ## On-demand behavior
 

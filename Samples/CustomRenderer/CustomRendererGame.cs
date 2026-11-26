@@ -68,7 +68,6 @@ internal sealed class CustomRendererGame : Game
 		_pixel.SetData(new[] { Color.White });
 
 		_fontSystem = new FontSystem(
-			GraphicsDevice,
 			new FontSystemSettings
 			{
 				TextureWidth = 1024,

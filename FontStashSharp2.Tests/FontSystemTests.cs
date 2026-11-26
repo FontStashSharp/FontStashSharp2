@@ -94,7 +94,8 @@ public sealed class FontSystemTests
 
 		Assert.Throws<ArgumentNullException>(() => font.MeasureString((string)null!));
 		Assert.Throws<ArgumentNullException>(() => font.MeasureString((System.Text.StringBuilder)null!));
-		Assert.Throws<ArgumentNullException>(() => font.PreloadGlyphs((string)null!));
+		var atlas = new RecordingGlyphAtlas();
+		Assert.Throws<ArgumentNullException>(() => font.PreloadGlyphs(atlas, (string)null!));
 	}
 
 	[Fact]

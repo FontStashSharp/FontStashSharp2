@@ -10,7 +10,8 @@ namespace FontStashSharp2;
 /// </summary>
 /// <remarks>
 /// Measurement never rasterizes glyphs. Glyphs enter the atlas only when the text is drawn (or when
-/// <see cref="PreloadGlyphs(string)"/> is called). Instances are cached by <see cref="FontSystem.GetFont(float)"/>.
+/// <see cref="PreloadGlyphs(SpriteBatch, string)"/> is called). Instances are cached by
+/// <see cref="FontSystem.GetFont(float)"/>.
 /// </remarks>
 public sealed class DynamicSpriteFont : SpriteFontBase
 {
@@ -197,30 +198,130 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	/// <summary>
 	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
 	/// </summary>
+	/// <param name="spriteBatch">Provides the graphics device used to allocate/upload atlas pages.</param>
 	/// <param name="text">The text whose glyphs should be cached.</param>
 	/// <returns>The number of newly rasterized glyphs.</returns>
-	/// <exception cref="InvalidOperationException">
-	/// The owning <see cref="FontSystem"/> has no graphics device.
-	/// </exception>
-	public int PreloadGlyphs(string text)
+	public int PreloadGlyphs(SpriteBatch spriteBatch, string text)
 	{
+		ArgumentNullException.ThrowIfNull(spriteBatch);
 		ArgumentNullException.ThrowIfNull(text);
-		return PreloadGlyphs(text.AsSpan());
+		return PreloadGlyphs(spriteBatch.GraphicsDevice, text.AsSpan());
 	}
 
 	/// <summary>
 	/// Rasterizes all glyphs in a span into the atlas ahead of time, avoiding a first-draw hitch.
 	/// </summary>
+	/// <param name="spriteBatch">Provides the graphics device used to allocate/upload atlas pages.</param>
 	/// <param name="text">The text whose glyphs should be cached.</param>
 	/// <returns>The number of newly rasterized glyphs.</returns>
-	public int PreloadGlyphs(ReadOnlySpan<char> text)
+	public int PreloadGlyphs(SpriteBatch spriteBatch, ReadOnlySpan<char> text)
 	{
+		ArgumentNullException.ThrowIfNull(spriteBatch);
+		return PreloadGlyphs(spriteBatch.GraphicsDevice, text);
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a string through a custom renderer's device ahead of time.
+	/// </summary>
+	/// <param name="renderer">Provides the graphics device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(IFontStashRenderer renderer, string text)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+		ArgumentNullException.ThrowIfNull(text);
+		return PreloadGlyphs(renderer.GraphicsDevice, text.AsSpan());
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a span through a custom renderer's device ahead of time.
+	/// </summary>
+	/// <param name="renderer">Provides the graphics device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(IFontStashRenderer renderer, ReadOnlySpan<char> text)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+		return PreloadGlyphs(renderer.GraphicsDevice, text);
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a string through a vertex renderer's device ahead of time.
+	/// </summary>
+	/// <param name="renderer">Provides the graphics device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(IFontStashRenderer2 renderer, string text)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+		ArgumentNullException.ThrowIfNull(text);
+		return PreloadGlyphs(renderer.GraphicsDevice, text.AsSpan());
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a span through a vertex renderer's device ahead of time.
+	/// </summary>
+	/// <param name="renderer">Provides the graphics device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(IFontStashRenderer2 renderer, ReadOnlySpan<char> text)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+		return PreloadGlyphs(renderer.GraphicsDevice, text);
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
+	/// </summary>
+	/// <param name="graphicsDevice">The device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(GraphicsDevice graphicsDevice, string text)
+	{
+		ArgumentNullException.ThrowIfNull(graphicsDevice);
+		ArgumentNullException.ThrowIfNull(text);
+		return PreloadGlyphs(graphicsDevice, text.AsSpan());
+	}
+
+	/// <summary>
+	/// Rasterizes all glyphs in a span into the atlas ahead of time, avoiding a first-draw hitch.
+	/// </summary>
+	/// <param name="graphicsDevice">The device used to allocate/upload atlas pages.</param>
+	/// <param name="text">The text whose glyphs should be cached.</param>
+	/// <returns>The number of newly rasterized glyphs.</returns>
+	public int PreloadGlyphs(GraphicsDevice graphicsDevice, ReadOnlySpan<char> text)
+	{
+		ArgumentNullException.ThrowIfNull(graphicsDevice);
+
 		if (text.IsEmpty)
 		{
 			return 0;
 		}
 
-		var atlas = _fontSystem.GetAtlasOrThrow();
+		return PreloadGlyphs(_fontSystem.GetAtlas(graphicsDevice), graphicsDevice, text);
+	}
+
+	internal int PreloadGlyphs(IGlyphAtlas atlas, string text)
+	{
+		ArgumentNullException.ThrowIfNull(atlas);
+		ArgumentNullException.ThrowIfNull(text);
+		return PreloadGlyphs(atlas, null, text.AsSpan());
+	}
+
+	internal int PreloadGlyphs(IGlyphAtlas atlas, ReadOnlySpan<char> text)
+	{
+		return PreloadGlyphs(atlas, null, text);
+	}
+
+	internal int PreloadGlyphs(IGlyphAtlas atlas, GraphicsDevice? graphicsDevice, ReadOnlySpan<char> text)
+	{
+		ArgumentNullException.ThrowIfNull(atlas);
+
+		if (text.IsEmpty)
+		{
+			return 0;
+		}
+
 		var before = _glyphCache.RasterizedGlyphCount;
 
 		for (var i = 0; i < text.Length;)
@@ -237,7 +338,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					break;
 			}
 
-			_glyphCache.GetRenderedGlyph(codepoint, atlas);
+			_glyphCache.GetRenderedGlyph(codepoint, atlas, graphicsDevice);
 		}
 
 		return _glyphCache.RasterizedGlyphCount - before;
@@ -255,6 +356,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		SpriteEffects effects,
 		float layerDepth)
 	{
+		ArgumentNullException.ThrowIfNull(spriteBatch);
+
 		if (text.IsEmpty)
 		{
 			return;
@@ -270,7 +373,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var atlas = _fontSystem.GetAtlasOrThrow();
+		var device = spriteBatch.GraphicsDevice;
+		var atlas = _fontSystem.GetAtlas(device);
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
@@ -306,7 +410,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
 				? cachedGlyph
-				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas, device);
 
 			if (hasPrevious)
 			{
@@ -391,7 +495,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var atlas = _fontSystem.GetAtlasOrThrow();
+		var device = renderer.GraphicsDevice;
+		var atlas = _fontSystem.GetAtlas(device);
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
@@ -427,7 +532,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
 				? cachedGlyph
-				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas, device);
 
 			if (hasPrevious)
 			{
@@ -510,7 +615,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var atlas = _fontSystem.GetAtlasOrThrow();
+		var device = renderer.GraphicsDevice;
+		var atlas = _fontSystem.GetAtlas(device);
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
@@ -546,7 +652,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
 				? cachedGlyph
-				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas, device);
 
 			if (hasPrevious)
 			{
@@ -644,7 +750,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 	private void DrawTextDefault(SpriteBatch spriteBatch, ReadOnlySpan<char> text, Vector2 position, Color color)
 	{
-		var atlas = _fontSystem.GetAtlasOrThrow();
+		var device = spriteBatch.GraphicsDevice;
+		var atlas = _fontSystem.GetAtlas(device);
 		var baselineY = position.Y + Ascent;
 		var lineTop = 0f;
 		var penX = 0f;
@@ -685,7 +792,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
 				? cachedGlyph
-				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas, device);
 
 			if (hasPrevious)
 			{

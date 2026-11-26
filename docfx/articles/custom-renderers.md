@@ -183,9 +183,9 @@ layout, or a text origin. This also means batching is the renderer's responsibil
 multiple atlas pages will arrive as alternating `Draw` calls in the same order as the text. Group them
 by `texture` if your renderer requires it.
 
-The `GraphicsDevice` property is there for renderer resource management. FontStashSharp2 keeps atlas
-textures on the device passed to `FontSystem`; using a renderer on a different device is the caller's
-responsibility.
+The `GraphicsDevice` property is there for renderer resource management and atlas creation.
+FontStashSharp2 binds a `FontSystem`'s atlas to the device supplied by the first `SpriteBatch` or
+renderer draw/preload. Use a separate `FontSystem` per device.
 
 ## Supersampling and effects
 

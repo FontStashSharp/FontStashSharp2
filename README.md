@@ -47,7 +47,7 @@ public sealed class MyGame : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        _fonts = new FontSystem(GraphicsDevice, new FontSystemSettings
+        _fonts = new FontSystem(new FontSystemSettings
         {
             TextureWidth = 1024,
             TextureHeight = 1024,
@@ -177,7 +177,7 @@ layout metrics (advances, kerning, ascent, line spacing) stay at the nominal `Fo
 factor is **2×**, so text scaled up to roughly 2× remains sharp without extra draw calls.
 
 ```csharp
-var fonts = new FontSystem(GraphicsDevice, new FontSystemSettings
+var fonts = new FontSystem(new FontSystemSettings
 {
     SupersamplingFactor = 2f, // 1 = off, 3-4 for heavy camera zoom
 });
@@ -194,10 +194,11 @@ and the dedicated `Samples/Supersampling` comparison.
 
 ## Measurement without a graphics device
 
-`MeasureString` only needs parsed metrics, so it works on a background thread or a server:
+A `FontSystem` is device-agnostic. `MeasureString` only needs parsed metrics, so it works on a
+background thread or a server before any atlas exists:
 
 ```csharp
-using var fonts = new FontSystem(); // no GraphicsDevice
+using var fonts = new FontSystem();
 fonts.AddFont(File.ReadAllBytes("Content/MyFont.ttf"));
 var font = fonts.GetFont(24f);
 
@@ -207,15 +208,18 @@ Vector2 centered = new(
     (viewportHeight - size.Y) / 2f);
 ```
 
-Drawing or preloading on a measurement-only system throws a descriptive
-`InvalidOperationException`.
+The atlas is created lazily from the `GraphicsDevice` on the first `SpriteBatch`/renderer draw or
+preload. If you only measure, no GPU resources are touched.
 
 ## On-demand atlas behavior
 
 - `MeasureString`, line breaking, fallback resolution, and advance widths are CPU-only.
 - `DynamicSpriteFont.GlyphCount` counts glyphs that have been rasterized; measuring leaves it at 0.
 - First draw of a glyph rasterizes it, uploads it to the atlas, and caches its atlas rectangle.
-- `PreloadGlyphs` rasterizes ahead of time to avoid a first-use hitch during gameplay.
+- The atlas is bound to the first `GraphicsDevice` supplied by a `SpriteBatch` or renderer; use one
+  `FontSystem` per device.
+- `PreloadGlyphs(spriteBatch, ...)` (or the renderer/device overloads) rasterizes ahead of time to
+  avoid a first-use hitch during gameplay.
 - Atlas pages are allocated lazily; glyph padding is filled by extending edge pixels to avoid seams.
 
 ## Font fallback

@@ -9,17 +9,19 @@ namespace FontStashSharp2;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A font system can be created without a <see cref="GraphicsDevice"/> for measurement-only use.
-/// Attempting to draw or preload glyphs on such an instance throws <see cref="InvalidOperationException"/>.
+/// A font system does not require a <see cref="GraphicsDevice"/> at construction time. The atlas is
+/// created lazily from the device supplied by the first <see cref="SpriteBatch"/>,
+/// <see cref="IFontStashRenderer"/>, or <see cref="IFontStashRenderer2"/> draw/preload call. This
+/// allows measurement without a GPU and lets the library work with any MonoGame backend.
 /// </para>
 /// <para>
-/// Instances are not thread-safe. A single <see cref="GraphicsDevice"/> should be used from one thread,
-/// as required by MonoGame.
+/// One font system is bound to one <see cref="GraphicsDevice"/>. Create a separate font system per
+/// device. Instances are not thread-safe.
 /// </para>
 /// </remarks>
 public sealed class FontSystem : IDisposable
 {
-	private readonly IGlyphAtlas? _atlas;
+	private IGlyphAtlas? _atlas;
 	private readonly FontSystemSettings _settings;
 	private readonly List<FontSource> _fontSources = new();
 	private readonly Dictionary<float, DynamicSpriteFont> _fonts = new();
@@ -27,42 +29,22 @@ public sealed class FontSystem : IDisposable
 	private bool _disposed;
 
 	/// <summary>
-	/// Creates a measurement-only font system. No texture atlas is allocated.
+	/// Creates a font system. No texture atlas is allocated until text is drawn or preloaded.
 	/// </summary>
-	public FontSystem()
-		: this((GraphicsDevice?)null, null)
-	{
-	}
-
-	/// <summary>
-	/// Creates a font system.
-	/// </summary>
-	/// <param name="graphicsDevice">
-	/// The device used to allocate atlas textures. Pass <see langword="null"/> to measure text only.
-	/// </param>
 	/// <param name="settings">Atlas settings, or <see langword="null"/> for defaults.</param>
-	public FontSystem(GraphicsDevice? graphicsDevice, FontSystemSettings? settings = null)
+	public FontSystem(FontSystemSettings? settings = null)
 	{
 		_settings = (settings ?? new FontSystemSettings()).Clone();
 		_settings.Validate();
-
-		if (graphicsDevice is not null)
-		{
-			_atlas = new TextureAtlas(graphicsDevice, _settings);
-		}
-	}
-
-	private FontSystem(FontSystemSettings settings, IGlyphAtlas? atlas)
-	{
-		_settings = settings;
-		_settings.Validate();
-		_atlas = atlas;
 	}
 
 	internal static FontSystem CreateWithAtlas(IGlyphAtlas atlas, FontSystemSettings? settings = null)
 	{
 		ArgumentNullException.ThrowIfNull(atlas);
-		return new FontSystem((settings ?? new FontSystemSettings()).Clone(), atlas);
+
+		var fontSystem = new FontSystem(settings);
+		fontSystem._atlas = atlas;
+		return fontSystem;
 	}
 
 	/// <summary>
@@ -78,7 +60,7 @@ public sealed class FontSystem : IDisposable
 	}
 
 	/// <summary>
-	/// Gets the number of atlas pages allocated so far. Measurement alone never allocates pages.
+	/// Gets the number of atlas pages allocated so far. This is 0 until text is drawn or preloaded.
 	/// </summary>
 	public int TextureCount
 	{
@@ -95,11 +77,14 @@ public sealed class FontSystem : IDisposable
 
 	internal float SupersamplingFactor => _settings.SupersamplingFactor;
 
-	internal IGlyphAtlas GetAtlasOrThrow()
+	internal IGlyphAtlas GetAtlas(GraphicsDevice graphicsDevice)
 	{
 		ThrowIfDisposed();
-		return _atlas ?? throw new InvalidOperationException(
-			"This FontSystem was created without a GraphicsDevice. Create it with a GraphicsDevice to draw or preload glyphs.");
+		ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+		_atlas ??= new TextureAtlas(_settings);
+		_atlas.ValidateDevice(graphicsDevice);
+		return _atlas;
 	}
 
 	/// <summary>
@@ -193,7 +178,7 @@ public sealed class FontSystem : IDisposable
 	/// </summary>
 	/// <param name="index">Zero-based atlas page index.</param>
 	/// <exception cref="InvalidOperationException">
-	/// This system was created without a graphics device.
+	/// No atlas has been created yet. Draw or preload text first.
 	/// </exception>
 	/// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is out of range.</exception>
 	public Texture2D GetTexture(int index)
@@ -203,7 +188,7 @@ public sealed class FontSystem : IDisposable
 		if (_atlas is not TextureAtlas textureAtlas)
 		{
 			throw new InvalidOperationException(
-				"This FontSystem was created without a GraphicsDevice, so it has no atlas textures.");
+				"No atlas textures have been created yet. Draw or preload text through a renderer first.");
 		}
 
 		return textureAtlas.GetTexture(index);
@@ -221,6 +206,7 @@ public sealed class FontSystem : IDisposable
 
 		_disposed = true;
 		(_atlas as IDisposable)?.Dispose();
+		_atlas = null;
 		_fonts.Clear();
 		_fontSources.Clear();
 	}
@@ -232,7 +218,7 @@ public sealed class FontSystem : IDisposable
 		if (_atlas is not TextureAtlas textureAtlas)
 		{
 			throw new InvalidOperationException(
-				"Text rendering requires a FontSystem created with a GraphicsDevice.");
+				"No atlas textures have been created yet. Draw or preload text through a renderer first.");
 		}
 
 		return textureAtlas.GetTexture(index);

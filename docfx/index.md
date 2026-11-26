@@ -10,7 +10,7 @@ whose signatures mirror the built-in `SpriteFont` overloads.
 ![Hello World sample](images/hello-world.png)
 
 ```csharp
-using var fonts = new FontSystem(GraphicsDevice);
+using var fonts = new FontSystem();
 fonts.AddFont(File.ReadAllBytes("Content/MyFont.ttf"));
 var font = fonts.GetFont(32f);
 

@@ -1,5 +1,6 @@
 using FontStashSharp2.Internal;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace FontStashSharp2.Tests;
 
@@ -13,7 +14,7 @@ internal static class TestFonts
 
 	public static FontSystem CreateFontSystem(FontSystemSettings? settings = null)
 	{
-		return new FontSystem((Microsoft.Xna.Framework.Graphics.GraphicsDevice?)null, settings);
+		return new FontSystem(settings);
 	}
 
 	public static FontSystem CreateFontSystem(IGlyphAtlas atlas, FontSystemSettings? settings = null)
@@ -30,7 +31,11 @@ internal sealed class RecordingGlyphAtlas : IGlyphAtlas
 
 	public int TextureCount => 1;
 
-	public GlyphPlacement Add(ReadOnlySpan<byte> alphaBitmap, int width, int height)
+	public void ValidateDevice(GraphicsDevice graphicsDevice)
+	{
+	}
+
+	public GlyphPlacement Add(GraphicsDevice? graphicsDevice, ReadOnlySpan<byte> alphaBitmap, int width, int height)
 	{
 		var alpha = alphaBitmap[..(width * height)].ToArray();
 		var index = Glyphs.Count;

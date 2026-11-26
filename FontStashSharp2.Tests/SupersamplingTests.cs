@@ -10,14 +10,14 @@ public sealed class SupersamplingTests
 			normalAtlas,
 			new FontSystemSettings { SupersamplingFactor = 1f });
 		normalSystem.AddFont(TestFonts.Data);
-		normalSystem.GetFont(32).PreloadGlyphs("H");
+		normalSystem.GetFont(32).PreloadGlyphs(normalAtlas, "H");
 
 		var supersampledAtlas = new RecordingGlyphAtlas();
 		using var supersampledSystem = TestFonts.CreateFontSystem(
 			supersampledAtlas,
 			new FontSystemSettings { SupersamplingFactor = 2f });
 		supersampledSystem.AddFont(TestFonts.Data);
-		supersampledSystem.GetFont(32).PreloadGlyphs("H");
+		supersampledSystem.GetFont(32).PreloadGlyphs(supersampledAtlas, "H");
 
 		var normal = Assert.Single(normalAtlas.Glyphs);
 		var supersampled = Assert.Single(supersampledAtlas.Glyphs);
@@ -76,7 +76,7 @@ public sealed class SupersamplingTests
 		fontSystem.AddFont(TestFonts.Data);
 		var font = fontSystem.GetFont(24);
 
-		var added = font.PreloadGlyphs("Hello");
+		var added = font.PreloadGlyphs(atlas, "Hello");
 
 		Assert.Equal(4, added);
 		Assert.Equal(4, font.GlyphCount);

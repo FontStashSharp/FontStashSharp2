@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using StbTrueTypeNext;
 
 namespace FontStashSharp2.Internal;
@@ -120,7 +121,7 @@ internal sealed class GlyphCache
 		return _rendered.TryGetValue(codepoint, out glyph);
 	}
 
-	public RenderedGlyph GetRenderedGlyph(int codepoint, IGlyphAtlas atlas)
+	public RenderedGlyph GetRenderedGlyph(int codepoint, IGlyphAtlas atlas, GraphicsDevice? graphicsDevice)
 	{
 		ArgumentNullException.ThrowIfNull(atlas);
 
@@ -157,7 +158,7 @@ internal sealed class GlyphCache
 			}
 
 			var alpha = bitmap.Bitmap.AsSpan(bitmap.BitmapOffset, length);
-			var placement = atlas.Add(alpha, bitmap.Width, bitmap.Height);
+			var placement = atlas.Add(graphicsDevice, alpha, bitmap.Width, bitmap.Height);
 			glyph = new RenderedGlyph(
 				metrics,
 				placement.TextureIndex,
