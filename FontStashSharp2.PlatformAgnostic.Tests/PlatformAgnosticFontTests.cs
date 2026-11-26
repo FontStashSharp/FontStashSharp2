@@ -132,6 +132,107 @@ public sealed class PlatformAgnosticFontTests
 		Assert.True(manager.SetTextureDataCalls > 0);
 	}
 
+	[Fact]
+	public void TextureAtlasFull_FiresOnlyWhenANewPageIsCreated()
+	{
+		var manager = new FakeTextureManager();
+		var events = new List<TextureAtlasFullEventArgs>();
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			TextureWidth = 48,
+			TextureHeight = 48,
+			MaxTextureCount = 32,
+			GlyphPadding = 1,
+			SupersamplingFactor = 1f,
+			UseKerning = false,
+		});
+		fontSystem.TextureAtlasFull += (_, e) => events.Add(e);
+
+		var font = fontSystem.GetFont(24f);
+		font.PreloadGlyphs(manager, "Hi");
+
+		Assert.Empty(events);
+
+		font.PreloadGlyphs(manager, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+
+		Assert.NotEmpty(events);
+		Assert.True(fontSystem.TextureCount > 1);
+		Assert.All(events, e =>
+		{
+			Assert.InRange(e.CurrentTextureCount, 1, int.MaxValue);
+			Assert.Equal(32, e.MaxTextureCount);
+			Assert.Equal(48, e.PageWidth);
+			Assert.Equal(48, e.PageHeight);
+			Assert.True(e.GlyphWidth > 0);
+			Assert.True(e.GlyphHeight > 0);
+			Assert.True(e.SlotWidth >= e.GlyphWidth);
+			Assert.True(e.SlotHeight >= e.GlyphHeight);
+		});
+	}
+
+	[Fact]
+	public void ClearTextures_RemovesPagesAndInvalidatesGlyphCache()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			TextureWidth = 128,
+			TextureHeight = 128,
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(renderer, "Hello", Vector2.Zero, Color.White);
+
+		var pageCount = fontSystem.TextureCount;
+		Assert.True(pageCount > 0);
+		Assert.True(font.GlyphCount > 0);
+		Assert.Equal(0, manager.DestroyTextureCalls);
+
+		fontSystem.ClearTextures();
+
+		Assert.Equal(0, fontSystem.TextureCount);
+		Assert.Equal(0, font.GlyphCount);
+		Assert.Equal(pageCount, manager.DestroyTextureCalls);
+		Assert.All(manager.Textures, texture => Assert.True(texture.Destroyed));
+		Assert.Throws<InvalidOperationException>(() => fontSystem.GetTexture(0));
+
+		font.DrawText(renderer, "Hello", Vector2.Zero, Color.White);
+
+		Assert.True(fontSystem.TextureCount > 0);
+		Assert.True(font.GlyphCount > 0);
+		Assert.True(manager.CreateTextureCalls > pageCount);
+	}
+
+	[Fact]
+	public void ClearTextures_LazilyInvalidatesFontsRemovedFromInternalCache()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			TextureWidth = 128,
+			TextureHeight = 128,
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+		font.DrawText(renderer, "Hello", Vector2.Zero, Color.White);
+		Assert.True(font.GlyphCount > 0);
+
+		// AddFont clears FontSystem._fonts; this font is now only held by the caller.
+		fontSystem.AddFont(TestFont.Data);
+		fontSystem.ClearTextures();
+
+		Assert.Equal(0, font.GlyphCount);
+
+		font.DrawText(renderer, "Hello", Vector2.Zero, Color.White);
+		Assert.True(font.GlyphCount > 0);
+	}
+
 	private static void AssertVertexInBounds(VertexPositionColorTexture vertex)
 	{
 		Assert.InRange(vertex.TextureCoordinate.X, 0f, 1f);

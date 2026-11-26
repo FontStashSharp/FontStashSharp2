@@ -24,7 +24,19 @@ public sealed class FontSystem : IDisposable
 	private readonly List<FontSource> _fontSources = new();
 	private readonly Dictionary<float, DynamicSpriteFont> _fonts = new();
 	private ReadOnlyCollection<FontSource>? _fontSourcesView;
+	private long _atlasGeneration;
 	private bool _disposed;
+
+	/// <summary>
+	/// Occurs when no existing atlas page can fit the next glyph and a new page is about to be
+	/// created.
+	/// </summary>
+	/// <remarks>
+	/// The event is raised synchronously from the drawing thread before the new page is allocated.
+	/// The first page does not raise this event. Handlers should only inspect the supplied data; do not
+	/// draw text or call <see cref="ClearTextures"/> from the handler.
+	/// </remarks>
+	public event EventHandler<TextureAtlasFullEventArgs>? TextureAtlasFull;
 
 	/// <summary>
 	/// Creates a font system. No texture atlas is allocated until text is drawn or preloaded.
@@ -75,14 +87,21 @@ public sealed class FontSystem : IDisposable
 
 	internal float SupersamplingFactor => _settings.SupersamplingFactor;
 
+	internal long AtlasGeneration => _atlasGeneration;
+
 	internal IGlyphAtlas GetAtlas(AtlasDevice device)
 	{
 		ThrowIfDisposed();
 		ArgumentNullException.ThrowIfNull(device);
 
-		_atlas ??= new TextureAtlas(_settings);
+		_atlas ??= new TextureAtlas(_settings, OnTextureAtlasFull);
 		_atlas.ValidateDevice(device);
 		return _atlas;
+	}
+
+	private void OnTextureAtlasFull(TextureAtlasFullEventArgs e)
+	{
+		TextureAtlasFull?.Invoke(this, e);
 	}
 
 	/// <summary>
@@ -190,6 +209,31 @@ public sealed class FontSystem : IDisposable
 		}
 
 		return textureAtlas.GetTexture(index);
+	}
+
+	/// <summary>
+	/// Destroys all atlas textures and clears cached rasterized glyphs.
+	/// </summary>
+	/// <remarks>
+	/// Font sources, measured metrics, and kerning caches are kept. The next draw or preload creates a
+	/// new atlas and rasterizes glyphs on demand again. Textures returned by <see cref="GetTexture"/>
+	/// before this call become invalid. The font system is not thread-safe; do not call this while
+	/// drawing.
+	/// </remarks>
+	public void ClearTextures()
+	{
+		ThrowIfDisposed();
+
+		_atlasGeneration++;
+		(_atlas as IDisposable)?.Dispose();
+		_atlas = null;
+
+		// Existing font instances may not be in _fonts (AddFont clears the cache), so they also
+		// compare AtlasGeneration before drawing.
+		foreach (var font in _fonts.Values)
+		{
+			font.ClearRenderedGlyphs();
+		}
 	}
 
 	/// <summary>

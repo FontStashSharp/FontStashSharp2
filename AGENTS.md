@@ -99,6 +99,12 @@ The atlas is created on the first draw or preload from the `SpriteBatch`, `IFont
 `PreloadGlyphs` overloads therefore require a batch/renderer/device; tests use the internal fake-atlas
 overload.
 
+`FontSystem.TextureAtlasFull` fires before a new page is allocated, but not for the first page. The
+handler runs synchronously on the drawing thread. `FontSystem.ClearTextures` disposes every page and
+must invalidate rendered glyph caches (metrics/kerning stay). Old `DynamicSpriteFont` instances detect
+the atlas generation change and re-rasterize lazily; never serve a cached `RenderedGlyph` across a
+clear.
+
 ### AOT and trimming
 
 - Both class libraries (`FontStashSharp2.MonoGame` and `FontStashSharp2.PlatformAgnostic`) set
@@ -147,6 +153,8 @@ overload.
   the square of the factor. Do not apply the factor to advances, kerning, or line metrics.
 - MonoGame texture pages are `SurfaceFormat.Color`; both builds upload RGBA and premultiply by default
   (RGB = alpha).
+- The atlas-full event is raised inside the atlas lock right before `CreatePage`. Do not draw or call
+  `ClearTextures` from the handler; inspect the event args and return.
 - `TextureAtlas` is lock-protected. `FontSystem`, fonts, and `GlyphCache` are **not** thread-safe.
 - Uploading a newly rasterized glyph may happen between `SpriteBatch.Draw` calls; do not introduce
   `GraphicsDevice.SetData`/`ITexture2DManager.SetTextureData` calls in a way that requires a batch

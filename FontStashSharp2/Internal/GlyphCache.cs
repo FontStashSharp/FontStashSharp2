@@ -74,6 +74,15 @@ internal sealed class GlyphCache
 	/// <summary>Gets the number of glyphs that have been uploaded to the atlas.</summary>
 	public int RasterizedGlyphCount => _rasterizedGlyphCount;
 
+	/// <summary>Drops every rasterized glyph while keeping metrics and kerning caches.</summary>
+	public void ClearRenderedGlyphs()
+	{
+		Array.Clear(_asciiRendered);
+		Array.Clear(_asciiRenderedCached);
+		_rendered.Clear();
+		_rasterizedGlyphCount = 0;
+	}
+
 	public GlyphMetrics GetMetrics(int codepoint)
 	{
 		if ((uint)codepoint < AsciiCount)

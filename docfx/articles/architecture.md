@@ -128,7 +128,13 @@ contracts and a complete example.
   `BlendState.AlphaBlend`. Set `PremultiplyAlpha = false` for non-premultiplied blending.
 - **Pages.** Pages are created lazily. `MaxTextureCount` bounds growth and produces a descriptive
   exception when exceeded. A glyph larger than a page also throws a descriptive exception.
+- **Growth notification.** When no existing page can fit the next glyph, a new page is created.
+  `FontSystem.TextureAtlasFull` fires immediately before that allocation; the first page does not fire
+  it. Event data includes the current/max page counts, page size, glyph size, and padded slot size.
 - **Clearing.** New pages are cleared once so untouched pixels are transparent.
+- **Reset.** `FontSystem.ClearTextures` disposes every page and drops rendered glyph entries while
+  keeping metrics and kerning. A generation counter makes even font instances removed from the size
+  cache re-rasterize on their next draw/preload. Textures returned by `GetTexture` become invalid.
 
 ## Lifetime, disposal, and threading
 

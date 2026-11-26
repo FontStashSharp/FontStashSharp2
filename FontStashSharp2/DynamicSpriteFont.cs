@@ -18,6 +18,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	private readonly FontSystem _fontSystem;
 	private readonly GlyphCache _glyphCache;
 	private readonly float _inverseSupersamplingFactor;
+	private long _atlasGeneration;
 	private float _lineSpacing;
 
 	internal DynamicSpriteFont(FontSystem fontSystem, FontSource[] sources, float size)
@@ -31,6 +32,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 
 		_fontSystem = fontSystem;
+		_atlasGeneration = fontSystem.AtlasGeneration;
 		FontSize = size;
 
 		var scales = new float[sources.Length];
@@ -108,7 +110,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	/// <summary>
 	/// Gets the number of glyphs this font has rasterized into the atlas.
 	/// </summary>
-	public int GlyphCount => _glyphCache.RasterizedGlyphCount;
+	public int GlyphCount
+	{
+		get
+		{
+			EnsureAtlasGeneration();
+			return _glyphCache.RasterizedGlyphCount;
+		}
+	}
 
 	/// <summary>
 	/// Gets the number of code points whose metrics have been resolved (including measurement-only use).
@@ -324,6 +333,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return 0;
 		}
 
+		EnsureAtlasGeneration();
 		var before = _glyphCache.RasterizedGlyphCount;
 
 		for (var i = 0; i < text.Length;)
@@ -365,6 +375,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		{
 			return;
 		}
+
+		EnsureAtlasGeneration();
 
 		if (rotation == 0f
 			&& origin == Vector2.Zero
@@ -500,6 +512,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
+		EnsureAtlasGeneration();
+
 		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
 
@@ -620,6 +634,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		{
 			return;
 		}
+
+		EnsureAtlasGeneration();
 
 		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
@@ -849,6 +865,20 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	}
 
 #endif
+
+	internal void ClearRenderedGlyphs()
+	{
+		_glyphCache.ClearRenderedGlyphs();
+		_atlasGeneration = _fontSystem.AtlasGeneration;
+	}
+
+	private void EnsureAtlasGeneration()
+	{
+		if (_atlasGeneration != _fontSystem.AtlasGeneration)
+		{
+			ClearRenderedGlyphs();
+		}
+	}
 
 	private static AtlasDevice GetDevice(IFontStashRenderer renderer)
 	{

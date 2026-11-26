@@ -15,11 +15,12 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 	private readonly int _padding;
 	private readonly bool _premultiplyAlpha;
 	private readonly int _maxTextureCount;
+	private readonly Action<TextureAtlasFullEventArgs>? _atlasFull;
 	private readonly List<Page> _pages = new();
 	private readonly object _sync = new();
 	private bool _disposed;
 
-	public TextureAtlas(FontSystemSettings settings)
+	public TextureAtlas(FontSystemSettings settings, Action<TextureAtlasFullEventArgs>? atlasFull = null)
 	{
 		ArgumentNullException.ThrowIfNull(settings);
 
@@ -28,6 +29,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		_padding = settings.GlyphPadding;
 		_premultiplyAlpha = settings.PremultiplyAlpha;
 		_maxTextureCount = settings.MaxTextureCount;
+		_atlasFull = atlasFull;
 	}
 
 	public int TextureCount
@@ -106,6 +108,20 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 					throw new InvalidOperationException(
 						$"The glyph atlas reached its limit of {_maxTextureCount} texture page(s). " +
 						"Increase FontSystemSettings.MaxTextureCount or use fewer font sizes.");
+				}
+
+				// The first page is not an atlas-full event; it is the initial allocation.
+				if (_pages.Count > 0)
+				{
+					_atlasFull?.Invoke(new TextureAtlasFullEventArgs(
+						_pages.Count,
+						_maxTextureCount,
+						_width,
+						_height,
+						width,
+						height,
+						slotWidth,
+						slotHeight));
 				}
 
 				page = CreatePage(device);

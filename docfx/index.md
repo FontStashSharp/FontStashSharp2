@@ -153,6 +153,22 @@ Console.WriteLine($"Resolved code points: {_font.CachedGlyphCount}");
 sanity check for the on-demand behavior. `TextureCount` is 0 until the first draw/preload creates the
 atlas. `FontSystem.GetTexture(index)` exposes atlas pages for debugging (do not dispose them).
 
+When no existing page can fit the next glyph, the atlas creates another page. Observe that transition:
+
+```csharp
+fonts.TextureAtlasFull += (_, e) =>
+    Console.WriteLine($"Creating page {e.CurrentTextureCount} of up to {e.MaxTextureCount}");
+```
+
+To drop every atlas page and force glyphs to be uploaded again on the next draw or preload:
+
+```csharp
+fonts.ClearTextures();
+```
+
+`ClearTextures` keeps font sources, metrics, and kerning, resets `TextureCount`/`GlyphCount`, and
+invalidates textures previously returned by `GetTexture`.
+
 ## 9. Measurement and device binding
 
 Measurement works before any GPU resources are created:
