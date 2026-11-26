@@ -31,6 +31,21 @@ decorations, spacing, and renderer interfaces.
 - **Sharper scaling.** Glyphs are supersampled 2× by default and drawn at the inverse scale, with a
   configurable factor for heavier zoom.
 
+## Code metrics
+
+Counts exclude `bin/`, `obj/`, generated docfx output, and binary assets. The shared library is
+compiled by both packages and is counted once. Counts were measured on 2026-11-27. `Code lines`
+excludes blank and comment-only lines but includes braces, directives, and `using` lines.
+
+| Area | Files | Physical lines | Non-blank lines | Code lines | Size |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Shared library (`FontStashSharp2/`) | 25 | 5,715 | 5,048 | 3,958 | 159.1 KB |
+| MonoGame tests | 11 | 1,299 | 1,066 | 1,063 | 36.4 KB |
+| Platform-agnostic tests | 4 | 1,302 | 1,075 | 1,074 | 34.1 KB |
+| Samples | 23 | 3,896 | 3,305 | 3,262 | 102.2 KB |
+| **Total C#** | **63** | **12,212** | **10,494** | **9,357** | **331.8 KB** |
+| docfx Markdown | 8 | 1,586 | 1,195 | n/a | 59.5 KB |
+
 ## Documentation
 
 https://fontstashsharp.github.io/FontStashSharp2
