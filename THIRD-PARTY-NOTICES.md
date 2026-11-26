@@ -10,6 +10,13 @@ The repository includes `ABeeZee-Regular.ttf` for tests and samples:
 - `Samples/Supersampling/Content/ABeeZee-Regular.ttf`
 - `Samples/CustomRenderer/Content/ABeeZee-Regular.ttf`
 - `Samples/Benchmark/Content/ABeeZee-Regular.ttf`
+- `Samples/StaticFont/Content/ABeeZee-18.fnt`
+- `Samples/StaticFont/Content/ABeeZee-18.png`
+- `Samples/StaticFont/Content/ABeeZee-40.fnt`
+- `Samples/StaticFont/Content/ABeeZee-40.png`
+
+The `Samples/StaticFont/Content/ABeeZee-18.*` and `ABeeZee-40.*` BMFont pages were generated from
+`ABeeZee-Regular.ttf` for the static font sample.
 
 Copyright 2011 The ABeeZee Project Authors (https://github.com/googlefonts/abeezee),
 with Reserved Font Name "ABeeZee".
@@ -22,3 +29,5 @@ font copy as `ABeeZee-OFL.txt` and is also available at https://scripts.sil.org/
 - **MonoGame.Framework.DesktopGL** - Microsoft Public License (Ms-PL).
 - **StbTrueTypeNext** - Unlicense OR MIT. It is a safe fork of StbTrueTypeSharp, a .NET port of
   stb_truetype.
+- **SharpFNT** - MIT. It reads and writes AngelCode BMFont descriptors in text, XML, and binary format.
+- **StbImageNext** - Unlicense OR MIT. It is a safe fork of StbImageSharp, a .NET port of stb_image.

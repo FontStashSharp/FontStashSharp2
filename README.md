@@ -11,9 +11,14 @@ atlas only when they are first needed. The MonoGame package draws with `SpriteBa
 that mirror the `SpriteFont` API. The `FontStashSharp2.PlatformAgnostic` package uses renderer
 interfaces and an engine-supplied `ITexture2DManager`, so it works without any MonoGame dependency.
 
+`StaticSpriteFont` loads pre-generated AngelCode BMFont atlases through SharpFNT and decodes their page
+images with StbImageNext. Static and dynamic fonts share the same draw overloads, effects,
+decorations, spacing, and renderer interfaces.
+
 ## Why another text library?
 
-- **No content pipeline.** Ship `.ttf`/`.otf` files and load them at runtime.
+- **No content pipeline.** Ship `.ttf`/`.otf` files and load them at runtime, or load AngelCode
+  BMFont atlases with `StaticSpriteFont`.
 - **On demand.** Measuring text does not touch the GPU; only glyphs that are drawn are rasterized and
   uploaded.
 - **Any size, one atlas.** Different font sizes and fallback fonts share one growable atlas.

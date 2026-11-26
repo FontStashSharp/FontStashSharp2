@@ -162,20 +162,59 @@ solid quad built from the atlas's dedicated 1x1 white texture. The line thicknes
 is transformed by the draw scale, and the quad follows the same rotation, origin, and flip rules as the
 glyphs.
 
+## Shared font pipeline
+
+`SpriteFontBase` implements the common text pipeline for both font kinds:
+
+- `MeasureString` and spacing-aware block measurement;
+- decoration line layout;
+- effect-pass ordering and the optimized SpriteBatch fast path;
+- the SpriteBatch, `IFontStashRenderer`, and `IFontStashRenderer2` draw loops;
+- decoration quads and the 1x1 white texture usage;
+- rotation, origin, scale, flips, layer depth, and character/line spacing.
+
+A derived font supplies layout and glyph data by overriding `Ascent`, `Descent`, and the protected
+hooks `GetAdvance`, `GetKerning`, `TryGetRenderedGlyph`, `GetTexture`, `GetWhiteTexture`,
+`SupersamplingScale`, `PrepareForMeasure`, and `PrepareForDraw`. `SpriteGlyph` offsets are
+baseline-relative; the static font converts BMFont top-of-line `yoffset` values by subtracting its
+ascent.
+
+Measurement uses only `GetAdvance` and `GetKerning`, so it remains device-free. `TryGetRenderedGlyph`
+is only called while drawing and may rasterize or upload.
+
+## Static BMFont fonts
+
+`StaticSpriteFont` is an independent `SpriteFontBase` implementation rather than a `FontSystem` cache
+entry. It parses an AngelCode BMFont descriptor with SharpFNT and decodes every referenced page image
+with StbImageNext into row-major RGBA. The descriptor can be text, XML, or binary. Page images are
+treated as straight alpha and converted with `GlyphAlphaMode` before upload; the default is
+premultiplied, matching the dynamic atlas.
+
+The descriptor provides advances, kerning pairs, page assignments, and vertical metrics. BMFont
+`xoffset`/`yoffset` are relative to the cursor and the top of the line, so the static draw path does
+not use baseline-relative TTF offsets. `common base` becomes `Ascent`; `base - lineHeight` becomes
+`Descent`.
+
+Construction decodes pixels but creates no GPU resources. The first draw or `PreloadTextures` uploads
+the page images and the 1x1 white decoration texture. One instance is bound to one device or texture
+manager; a second one throws. `Dispose` destroys every page and decoration texture.
+
 ## Lifetime, disposal, and threading
 
 - `FontSystem.Dispose` disposes every atlas page and clears cached fonts. It is idempotent. Further
   calls on the system throw `ObjectDisposedException`.
+- `StaticSpriteFont.Dispose` destroys its page and decoration textures. It is idempotent, and further
+  measure, preload, or draw calls throw `ObjectDisposedException`.
 - `TextureAtlas` guards mutations with a lock because different glyph caches may upload concurrently.
-- `FontSystem`, `FontSource`, `DynamicSpriteFont`, and `GlyphCache` are not thread-safe. MonoGame
-  graphics devices are not thread-safe either.
+- `FontSystem`, `FontSource`, `DynamicSpriteFont`, `StaticSpriteFont`, and `GlyphCache` are not
+  thread-safe. MonoGame graphics devices are not thread-safe either.
 - Existing font instances keep a snapshot of the fallback list. `AddFont` clears the size cache, so
   future `GetFont` calls see the new chain.
 
 ## Performance notes
 
 The common `DrawString(font, text, position, color)` call takes a dedicated fast path in
-`DynamicSpriteFont.DrawText`:
+`SpriteFontBase.DrawText`:
 
 - rotation, origin, scale, effects, and layer depth are checked once per call;
 - each glyph is submitted with the four-argument `SpriteBatch.Draw` when `SupersamplingFactor` is 1,

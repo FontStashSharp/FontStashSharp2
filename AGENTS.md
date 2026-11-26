@@ -28,6 +28,7 @@ dotnet run --project Samples/Benchmark -- --benchmark
 dotnet run --project Samples/Supersampling
 dotnet run --project Samples/CustomRenderer
 dotnet run --project Samples/TextEffects
+dotnet run --project Samples/StaticFont
 dotnet run --project Samples/OpenTK
 dotnet run --project Samples/SilkNet
 dotnet run --project Samples/OpenTK -- --frames 3
@@ -36,6 +37,8 @@ dotnet run --project Samples/HelloWorld -- --screenshot out.png
 dotnet run --project Samples/Benchmark -- --screenshot benchmark.png
 dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
 dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
+dotnet run --project Samples/TextEffects -- --screenshot text-effects.png
+dotnet run --project Samples/StaticFont -- --screenshot static-font.png
 ```
 
 Documentation:
@@ -46,9 +49,10 @@ dotnet docfx docfx/docfx.json
 ```
 
 The library and tests pin MonoGame 3.8.1.303 through `MonoGameVersion`. Samples use the latest
-MonoGame 3.8.6.1 through `LatestMonoGameVersion`. StbTrueTypeNext is pinned through
-`StbTrueTypeNextVersion`. The package/assembly version is defined once in `Directory.Build.props`; do
-not add per-project `<Version>` elements.
+MonoGame 3.8.6.1 through `LatestMonoGameVersion`. StbTrueTypeNext, SharpFNT, and StbImageNext are
+pinned through `StbTrueTypeNextVersion`, `SharpFNTVersion`, and `StbImageNextVersion`. The
+package/assembly version is defined once in `Directory.Build.props`; do not add per-project
+`<Version>` elements.
 
 The screenshot mode is also a useful end-to-end smoke test on a machine with a graphics device.
 
@@ -60,11 +64,14 @@ FontStashSharp2/
   FontSource.cs             wrapper around StbTrueTypeNext STBFont + name/metrics
   IFontStashRenderer.cs     quad renderer abstraction for drawing without SpriteBatch
   IFontStashRenderer2.cs    vertex-quad renderer abstraction
-  DynamicSpriteFont.cs      per-size metadata, MeasureString, PreloadGlyphs, DrawText
-  SpriteFontBase.cs         public base type + drawing hooks and convenience overloads
+  DynamicSpriteFont.cs      per-size metrics/glyph cache, PreloadGlyphs, shared-pipeline hooks
+  StaticSpriteFont.cs       BMFont descriptor + page images, PreloadTextures, shared-pipeline hooks
+  SpriteFontBase.cs         shared measure/draw pipeline, protected glyph hooks, convenience overloads
   SpriteBatchExtensions.cs  SpriteFont-compatible DrawString overloads
   FontSystemSettings.cs     atlas/raster settings (cloned on construction)
+  TextDecorationOptions.cs  optional underline/strikethrough draw argument
   Internal/
+    TextRenderHelpers.cs    shared codepoint/effect/decoration draw helpers
     GlyphCache.cs           fallback resolution, advances, kerning, rasterized glyph cache
     TextureAtlas.cs         RGBA atlas upload, padding extrusion, page allocation, disposal
     ShelfPacker.cs          pure row packer for one page
@@ -81,6 +88,7 @@ Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
 Samples/CustomRenderer/     IFontStashRenderer + IFontStashRenderer2 sample
 Samples/TextEffects/        SpriteBatch TextEffect/TextDecoration sample
+Samples/StaticFont/         StaticSpriteFont BMFont sample with screenshot mode
 Samples/OpenTK/             platform-agnostic OpenTK/OpenGL renderer sample
 Samples/SilkNet/            platform-agnostic Silk.NET/OpenGL renderer sample
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
@@ -113,8 +121,9 @@ clear.
   `IsAotCompatible`; keep them free of reflection, runtime code generation, and trim-unsafe APIs.
 - Sample and test projects are applications/test hosts, not libraries. Do not add `PublishAot` or
   `IsAotCompatible` to them.
-- The shared pipeline uses only static generics, dictionaries, `ArrayPool`, `System.Numerics`, and
-  StbTrueTypeNext; it contains no unsafe blocks, P/Invoke, or reflection. Keep it that way.
+- The shared pipeline uses managed dependencies only: static generics, dictionaries, `ArrayPool`,
+  `System.Numerics`, StbTrueTypeNext, SharpFNT, and StbImageNext. It contains no unsafe blocks,
+  P/Invoke, or reflection. Keep it that way.
 
 ### Platform-agnostic build
 
@@ -126,8 +135,44 @@ clear.
   `IFontStashRenderer` or `IFontStashRenderer2`. Do not add `SpriteBatch` overloads or MonoGame types.
 - One `FontSystem` is bound to one `ITexture2DManager`; atlas pages remember their manager and a second
   manager throws. `ITexture2DManager.DestroyTexture` is called from `FontSystem.Dispose`.
+- One `StaticSpriteFont` is bound to one `ITexture2DManager` after its first draw or preload; a second
+  manager throws, and `DestroyTexture` is called from `StaticSpriteFont.Dispose`.
 - `ITexture2DManager.SetTextureData` receives `ReadOnlySpan<byte>` with
   `bounds.Width * bounds.Height * 4` RGBA bytes. Never change this to BGRA or skip the alpha channel.
+
+### Static bitmap fonts
+
+- `StaticSpriteFont` parses AngelCode BMFont descriptors in text, XML, or binary form with SharpFNT and
+  decodes page images with StbImageNext into row-major RGBA.
+- Page images are treated as straight alpha and converted with `GlyphAlphaMode` before upload. The
+  default is `Premultiplied`, matching the dynamic atlas and `BlendState.AlphaBlend`; use
+  `NonPremultiplied` for source-alpha blending and `NoAntialiasing` to threshold coverage.
+- Construction parses metrics and kerning and decodes page pixels, but creates no GPU resources.
+  Measurement must stay device-free.
+- The first draw or `PreloadTextures` creates the page textures. One font instance belongs to one
+  device or texture manager; a different device throws.
+- BMFont `xoffset`/`yoffset` are relative to the cursor and the top of the line, not the baseline.
+  `xadvance` moves the pen. Do not reuse the baseline-relative TTF glyph offsets here.
+- Multi-page atlases use each character's `page` field. Missing characters use the `-1` character when
+  present.
+- `StaticSpriteFont.Dispose` destroys page and decoration textures and is idempotent. Further measure,
+  preload, or draw calls throw `ObjectDisposedException`.
+- Decorations use `common base` as ascent and `base - lineHeight` as descent.
+
+### Shared draw pipeline
+
+- `SpriteFontBase` owns `MeasureString`, spacing-aware measurement, decoration line layout, effect
+  passes, the optimized SpriteBatch fast path, and all three draw paths. `DynamicSpriteFont` and
+  `StaticSpriteFont` provide glyph data only; do not reintroduce duplicate draw/measure loops in them.
+- Derived fonts override `Ascent`/`Descent` plus the protected hooks `GetAdvance`, `GetKerning`,
+  `TryGetRenderedGlyph`, `GetTexture`, `GetWhiteTexture`, `SupersamplingScale`, `PrepareForMeasure`,
+  and `PrepareForDraw`.
+- Measurement must use only `GetAdvance`/`GetKerning`. `TryGetRenderedGlyph` is draw-only and may
+  rasterize or upload glyphs; never call it from measurement.
+- `PrepareForMeasure`/`PrepareForDraw` validate disposed state or refresh caches. The static font uses
+  them for disposal checks; the dynamic font uses `PrepareForDraw` for atlas-generation invalidation.
+- `SpriteGlyph` offsets are baseline-relative. Convert BMFont top-of-line `yoffset` values with
+  `yoffset - Ascent` before returning them from `TryGetRenderedGlyph`.
 
 ### Coordinates and layout
 
@@ -167,13 +212,12 @@ clear.
 
 ### Draw-path performance
 
-- `DynamicSpriteFont.DrawText` dispatches to a dedicated default path when rotation is 0, origin is
-  0, scale is 1, effects are None, layer depth is 0, both spacings are 0, and `TextEffect` is absent.
-  It caches the current atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when
-  `SupersamplingFactor` is 1, or an inverse-scaled draw otherwise. The fast path still runs when a
-  decoration is present; decoration quads are submitted after the text. The transformed path keeps
-  per-glyph origin/rotation/scale/effects handling and divides the draw scale by the supersampling
-  factor.
+- `SpriteFontBase.DrawText` dispatches to a dedicated default path when rotation is 0, origin is 0,
+  scale is 1, effects are None, layer depth is 0, both spacings are 0, and `TextEffect` is absent. It
+  caches the current atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when
+  `SupersamplingScale` is 1, or a scaled draw otherwise. The fast path still runs when a decoration is
+  present; decoration quads are submitted after the text. The transformed path keeps per-glyph
+  origin/rotation/scale/effects handling and multiplies the draw scale by `SupersamplingScale`.
 - A draw call takes `TextEffectOptions? effect`; `null` means no effect. `Stroke` submits the glyph at
   every square-ring offset up to `Amount`; `Shadow` submits one `(Amount, Amount)` offset. Both use
   `Color`, which defaults to white. Effect passes run before the main pass and are draw-time only (the
@@ -198,7 +242,11 @@ clear.
 - `TextEffectOptions.Amount` must be non-negative; `0` disables effects. Invalid effect kinds throw.
   Effect passes run before the main text pass and use the same atlas glyphs.
 - `TextEffectOptions.Color` defaults to white when omitted.
-- `SpriteFontBase` is the font parameter type. In the MonoGame build its public abstract span-based
+- `StaticSpriteFont` is an independent `SpriteFontBase` implementation. Its public constructors accept
+  a BMFont path, descriptor bytes, or a descriptor stream plus an optional `GlyphAlphaMode` (default
+  `Premultiplied`). `PreloadTextures(AtlasDevice)` uploads all pages, `Dispose` releases textures, and
+  the same effects, decorations, and spacing arguments apply.
+- `SpriteFontBase` is the font parameter type. In the MonoGame build its public virtual span-based
   `DrawText` hooks accept a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; the
   platform-agnostic build exposes only the two renderer hooks. `string`/`StringBuilder` and
   position/color overloads delegate to them.
@@ -217,19 +265,23 @@ clear.
 
 Tests use a fake `IGlyphAtlas` so caching/rasterization can be tested without a GPU. Prefer this seam
 over spinning up MonoGame in unit tests. The platform-agnostic tests use a fake `ITexture2DManager` and
-recording renderers, so they also run without a GPU. `Samples/OpenTK` and `Samples/SilkNet` are the
-windowed platform-agnostic integration samples; both accept `--frames <n>` for a bounded smoke test.
+recording renderers, so they also run without a GPU. `Fonts/StaticTest` contains text, XML, and binary
+BMFont descriptors plus two page PNGs used by the `StaticSpriteFont` tests. `Samples/OpenTK` and
+`Samples/SilkNet` are the windowed platform-agnostic integration samples; both accept `--frames <n>`
+for a bounded smoke test.
 `Samples/HelloWorld --screenshot` is the visual integration
 check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen;
 `Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison;
 `Samples/CustomRenderer --screenshot` verifies the custom renderer overloads end-to-end.
-`Samples/TextEffects --screenshot` verifies the draw-time TextEffect passes. Keep tests deterministic;
-do not depend on system fonts.
+`Samples/TextEffects --screenshot` verifies the draw-time TextEffect passes.
+`Samples/StaticFont --screenshot` verifies the StaticSpriteFont BMFont loading and draw path. Keep
+tests deterministic; do not depend on system fonts.
 
 When adding behavior, add tests for:
 
 - measurement math (advances, kerning, newlines, tabs, surrogates),
 - unchanged on-demand behavior,
+- BMFont text/XML/binary parsing, page selection, device binding, and texture disposal,
 - invalid input and disposal,
 - packing edge cases.
 
@@ -258,9 +310,10 @@ When adding behavior, add tests for:
 ## Docs
 
 Public API XML documentation is required (`GenerateDocumentationFile` is on). Keep `README.md`,
-`docfx/articles/*.md` (including `supersampling.md`, `custom-renderers.md`, `text-effects.md`, and
-`platform-agnostic.md`), and `AGENTS.md` in sync when behavior or public API changes. Regenerate API
-docs with docfx; `docfx/api/` and `docfx/_site/` are generated and git-ignored.
+`docfx/articles/*.md` (including `supersampling.md`, `custom-renderers.md`, `text-effects.md`,
+`static-fonts.md`, and `platform-agnostic.md`), and `AGENTS.md` in sync when behavior or public API
+changes. Regenerate API docs with docfx; `docfx/api/` and `docfx/_site/` are generated and
+git-ignored.
 
 ## Style
 

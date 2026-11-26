@@ -33,6 +33,9 @@
     <None Include="..\FontStashSharp2.Tests\Fonts\ABeeZee-OFL.txt"
           Link="Fonts\ABeeZee-OFL.txt"
           CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\FontStashSharp2.Tests\Fonts\StaticTest\**\*"
+          Link="Fonts\StaticTest\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

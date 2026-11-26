@@ -141,6 +141,10 @@ normally, while stroke and shadow values are submitted as extra glyph passes and
 strikethrough values are submitted as extra solid quads to the same renderer. See
 [Text effects](text-effects.md) for the options and behavior.
 
+`StaticSpriteFont` implements the same renderer hooks for AngelCode BMFont atlases. Its page images
+upload through `ITexture2DManager` on the first draw or `PreloadTextures`, and each instance is bound
+to one manager. See [Static bitmap fonts](static-fonts.md).
+
 ## Preloading and device lifetime
 
 `MeasureString` never creates a texture. Glyphs are uploaded on the first draw or when preloading:

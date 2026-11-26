@@ -8,8 +8,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FontStashSharp2</PackageId>
     <Authors>FontStashSharp2 contributors</Authors>
-    <Description>On-demand TrueType text rendering for MonoGame, drawn through SpriteBatch.</Description>
-    <PackageTags>monogame;font;truetype;text;spritebatch;stb_truetype;gamedev</PackageTags>
+    <Description>On-demand TrueType and static BMFont text rendering for MonoGame, drawn through SpriteBatch.</Description>
+    <PackageTags>monogame;font;truetype;bmfont;bitmap-font;text;spritebatch;stb_truetype;gamedev</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
@@ -24,6 +24,8 @@
     -->
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(MonoGameVersion)" PrivateAssets="All" />
     <PackageReference Include="StbTrueTypeNext" Version="$(StbTrueTypeNextVersion)" />
+    <PackageReference Include="SharpFNT" Version="$(SharpFNTVersion)" />
+    <PackageReference Include="StbImageNext" Version="$(StbImageNextVersion)" />
   </ItemGroup>
 
   <ItemGroup>

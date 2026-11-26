@@ -4,6 +4,8 @@ Text effects are submitted as extra glyph passes through the same renderer, and 
 submitted as extra solid quads after the text; no renderer changes are needed. A draw with a `null`
 `TextEffectOptions?`, no decoration, no extra spacing, and an identity transform uses the optimized
 SpriteBatch fast path. See [Text effects](text-effects.md) for the options and effect behavior.
+`StaticSpriteFont` implements the same interfaces for AngelCode BMFont atlases; see
+[Static bitmap fonts](static-fonts.md).
 
 FontStashSharp2 can draw through an arbitrary renderer, not only `SpriteBatch`. The
 `IFontStashRenderer` interface receives one glyph quad at a time, with the font's layout, kerning,

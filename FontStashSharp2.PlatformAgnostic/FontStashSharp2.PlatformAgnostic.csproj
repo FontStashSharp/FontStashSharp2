@@ -7,8 +7,8 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FontStashSharp2.PlatformAgnostic</PackageId>
     <Authors>FontStashSharp2 contributors</Authors>
-    <Description>On-demand TrueType text rendering for any C# game engine.</Description>
-    <PackageTags>font;truetype;text;stb_truetype;gamedev;platform-agnostic</PackageTags>
+    <Description>On-demand TrueType and static BMFont text rendering for any C# game engine.</Description>
+    <PackageTags>font;truetype;bmfont;bitmap-font;text;stb_truetype;gamedev;platform-agnostic</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryType>git</RepositoryType>
@@ -25,6 +25,8 @@
 
   <ItemGroup>
     <PackageReference Include="StbTrueTypeNext" Version="$(StbTrueTypeNextVersion)" />
+    <PackageReference Include="SharpFNT" Version="$(SharpFNTVersion)" />
+    <PackageReference Include="StbImageNext" Version="$(StbImageNextVersion)" />
   </ItemGroup>
 
   <ItemGroup>

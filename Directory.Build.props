@@ -9,5 +9,7 @@
     <MonoGameVersion>3.8.1.303</MonoGameVersion>
     <LatestMonoGameVersion>3.8.6.1</LatestMonoGameVersion>
     <StbTrueTypeNextVersion>1.0.3</StbTrueTypeNextVersion>
+    <SharpFNTVersion>2.0.0</SharpFNTVersion>
+    <StbImageNextVersion>1.2.1</StbImageNextVersion>
   </PropertyGroup>
 </Project>

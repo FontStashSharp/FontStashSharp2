@@ -1,6 +1,6 @@
 # Samples
 
-The repository contains eight samples. The MonoGame windowed samples also support screenshot modes that
+The repository contains nine samples. The MonoGame windowed samples also support screenshot modes that
 double as integration tests; the platform-agnostic samples accept `--frames <n>` for bounded smoke
 tests.
 
@@ -95,6 +95,27 @@ dotnet run --project Samples/TextEffects -- --screenshot text-effects.png
 ```
 
 Press `Esc` to exit. See [Text effects](text-effects.md) for the API and effect behavior.
+
+## Static BMFont (DesktopGL)
+
+A dedicated `StaticSpriteFont` sample that loads two pre-generated AngelCode BMFont atlases:
+
+- text descriptors with PNG page images;
+- 18 px and 40 px static fonts in the same scene;
+- premultiplied page alpha, matching the dynamic font atlas and `BlendState.AlphaBlend`;
+- measurement before texture upload, followed by `PreloadTextures`;
+- scaling, stroke/shadow effects, underline/strikethrough, rotation, and horizontal flipping;
+- kerning and multiline text with extra character/line spacing.
+
+![Static BMFont sample](../images/static-font.png)
+
+```bash
+dotnet run --project Samples/StaticFont
+dotnet run --project Samples/StaticFont -- --screenshot static-font.png
+```
+
+Press `Esc` to exit. See [Static bitmap fonts](static-fonts.md) for loading rules, metrics, and
+multi-page behavior.
 
 ## OpenTK (platform-agnostic)
 

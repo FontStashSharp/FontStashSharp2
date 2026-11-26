@@ -174,6 +174,24 @@ float lineSpacing = _font.LineSpacing; // ascent - descent + line gap, scaled to
 
 `LineSpacing` is settable if you want tighter or looser lines.
 
+## Static BMFont fonts
+
+`StaticSpriteFont` loads a pre-generated AngelCode BMFont atlas instead of rasterizing outlines:
+
+```csharp
+using var staticFont = new StaticSpriteFont("Content/MyFont.fnt");
+
+_spriteBatch.DrawString(staticFont, "Static BMFont", position, Color.White);
+```
+
+The descriptor may be text, XML, or binary. Relative page images resolve against the descriptor's
+directory, and page textures upload on the first draw or through
+`PreloadTextures(GraphicsDevice)`. Page images are treated as straight alpha and premultiplied by
+default, matching dynamic fonts and `BlendState.AlphaBlend`; pass `GlyphAlphaMode.NonPremultiplied`
+for source-alpha blending. Measurement works before the device is known. See
+[Static bitmap fonts](articles/static-fonts.md) for loading, metrics, multi-page atlases, and
+lifetime details.
+
 ## 6. Fallback fonts
 
 Sources are searched in the order they were added:
@@ -282,7 +300,8 @@ afterwards.
 - Supersampling increases atlas memory roughly quadratically. Use `SamplerState.LinearClamp` so the
   downscale is filtered; point sampling will alias. See [Supersampling](articles/supersampling.md) for the full
   explanation and factor guidance.
-- Bitmap fonts are not supported; a scalable TTF/OTF outline is required.
+- The dynamic `FontSystem` path requires TTF/OTF outlines. Use `StaticSpriteFont` for AngelCode
+  BMFont atlases.
 - Text colors should be premultiplied when using the default `GlyphAlphaMode.Premultiplied` atlas mode
   and `BlendState.AlphaBlend`. Opaque colors such as `Color.White` and `Color.Red` are already
   premultiplied.

@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -20,6 +20,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CustomRenderer.MonoGame", "Samples\CustomRenderer\CustomRenderer.MonoGame.csproj", "{6FACC5F2-75D1-42B3-A987-9616AFB3FB20}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextEffects.MonoGame", "Samples\TextEffects\TextEffects.MonoGame.csproj", "{560C6D0A-F86C-49D9-91BB-6EE20AA9F9E7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StaticFont.MonoGame", "Samples\StaticFont\StaticFont.MonoGame.csproj", "{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -127,6 +129,18 @@ Global
 		{560C6D0A-F86C-49D9-91BB-6EE20AA9F9E7}.Release|x64.Build.0 = Release|Any CPU
 		{560C6D0A-F86C-49D9-91BB-6EE20AA9F9E7}.Release|x86.ActiveCfg = Release|Any CPU
 		{560C6D0A-F86C-49D9-91BB-6EE20AA9F9E7}.Release|x86.Build.0 = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|x64.Build.0 = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Debug|x86.Build.0 = Debug|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|x64.ActiveCfg = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|x64.Build.0 = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|x86.ActiveCfg = Release|Any CPU
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -138,5 +152,6 @@ Global
 		{8FC87FF0-CD0C-4560-9976-A75F02C96825} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 		{6FACC5F2-75D1-42B3-A987-9616AFB3FB20} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 		{560C6D0A-F86C-49D9-91BB-6EE20AA9F9E7} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
+		{DCD2A1AC-E47F-41EF-840C-2E7D92FEBA98} = {5D20AA90-6969-D8BD-9DCD-8634F4692FDA}
 	EndGlobalSection
 EndGlobal
