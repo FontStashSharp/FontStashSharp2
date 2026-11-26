@@ -118,6 +118,24 @@ _spriteBatch.DrawString(_font, "Shadowed", new Vector2(40, 180), Color.White,
 The same arguments work with `font.DrawText(renderer, ...)`, `font.DrawText(renderer2, ...)`, and
 `SpriteBatch.DrawString`. See [Text effects](articles/text-effects.md) for the full guide.
 
+### Text decorations
+
+Underlines and strikethroughs use an independent optional `TextDecorationOptions?` argument:
+
+```csharp
+_spriteBatch.DrawString(_font, "Underlined", position, Color.White,
+    decoration: TextDecorationOptions.Underline(2));
+
+_spriteBatch.DrawString(_font, "Struck through", position, Color.White,
+    decoration: TextDecorationOptions.Strikethrough(1.5f, Color.OrangeRed));
+```
+
+- `null` or `TextDecoration.None` draws no line.
+- `DecorationWidth` is in layout pixels and scales with the draw.
+- `Color` defaults to `null`, meaning the main text color.
+- Decorations are drawn after the effects and text.
+- The same argument works with both custom renderers.
+
 ### Character and line spacing
 
 Every draw overload also accepts additional spacing, in layout pixels. Both values are scaled with the

@@ -83,7 +83,8 @@ A dedicated `SpriteBatch` sample for the optional draw effect arguments:
 
 - no effect (`null`), `TextEffect.Stroke`, and `TextEffect.Shadow`;
 - different `Amount` and `Color` values inside `TextEffectOptions`;
-- effects combined with rotation, scaling, and horizontal flipping;
+- `TextDecoration.Underline` and `TextDecoration.Strikethrough` through `TextDecorationOptions`;
+- effects and decorations combined with rotation, scaling, and horizontal flipping;
 - every line goes through `SpriteBatch.DrawString`, so it exercises the MonoGame draw path.
 
 ![Text effects sample](../images/text-effects.png)

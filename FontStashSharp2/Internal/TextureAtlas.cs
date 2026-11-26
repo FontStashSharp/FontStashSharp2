@@ -18,6 +18,10 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 	private readonly Action<TextureAtlasFullEventArgs>? _atlasFull;
 	private readonly List<Page> _pages = new();
 	private readonly object _sync = new();
+	private AtlasTexture? _whiteTexture;
+#if !MONOGAME
+	private ITexture2DManager? _whiteTextureManager;
+#endif
 	private bool _disposed;
 
 	public TextureAtlas(FontSystemSettings settings, Action<TextureAtlasFullEventArgs>? atlasFull = null)
@@ -181,6 +185,39 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		}
 	}
 
+	public AtlasTexture GetWhiteTexture(AtlasDevice device)
+	{
+		ArgumentNullException.ThrowIfNull(device);
+
+		lock (_sync)
+		{
+			ObjectDisposedException.ThrowIf(_disposed, this);
+			ValidateDeviceCore(device);
+
+			if (_whiteTexture is null)
+			{
+#if MONOGAME
+				var texture = new Texture2D(device, 1, 1, false, SurfaceFormat.Color)
+				{
+					Name = "FontStashSharp2.White",
+				};
+				texture.SetData(new byte[] { 255, 255, 255, 255 });
+				_whiteTexture = texture;
+#else
+				var texture = device.CreateTexture(1, 1);
+				device.SetTextureData(
+					texture,
+					new Rectangle(0, 0, 1, 1),
+					new byte[] { 255, 255, 255, 255 });
+				_whiteTexture = texture;
+				_whiteTextureManager = device;
+#endif
+			}
+
+			return _whiteTexture;
+		}
+	}
+
 	public void Dispose()
 	{
 		lock (_sync)
@@ -202,6 +239,19 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 			}
 
 			_pages.Clear();
+
+#if MONOGAME
+			_whiteTexture?.Dispose();
+#else
+			if (_whiteTexture is not null && _whiteTextureManager is not null)
+			{
+				_whiteTextureManager.DestroyTexture(_whiteTexture);
+			}
+#endif
+			_whiteTexture = null;
+#if !MONOGAME
+			_whiteTextureManager = null;
+#endif
 		}
 	}
 
@@ -213,8 +263,20 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 			throw new InvalidOperationException(
 				"This FontSystem already owns an atlas for a different GraphicsDevice. Create one FontSystem per graphics device.");
 		}
+
+		if (_whiteTexture is not null && !ReferenceEquals(_whiteTexture.GraphicsDevice, device))
+		{
+			throw new InvalidOperationException(
+				"This FontSystem already owns an atlas for a different GraphicsDevice. Create one FontSystem per graphics device.");
+		}
 #else
 		if (_pages.Count > 0 && !ReferenceEquals(_pages[0].TextureManager, device))
+		{
+			throw new InvalidOperationException(
+				"This FontSystem already owns an atlas for a different ITexture2DManager. Create one FontSystem per texture manager.");
+		}
+
+		if (_whiteTextureManager is not null && !ReferenceEquals(_whiteTextureManager, device))
 		{
 			throw new InvalidOperationException(
 				"This FontSystem already owns an atlas for a different ITexture2DManager. Create one FontSystem per texture manager.");

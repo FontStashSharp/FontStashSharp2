@@ -80,7 +80,7 @@ Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
 Samples/CustomRenderer/     IFontStashRenderer + IFontStashRenderer2 sample
-Samples/TextEffects/        SpriteBatch TextEffect None/Stroke/Shadow sample
+Samples/TextEffects/        SpriteBatch TextEffect/TextDecoration sample
 Samples/OpenTK/             platform-agnostic OpenTK/OpenGL renderer sample
 Samples/SilkNet/            platform-agnostic Silk.NET/OpenGL renderer sample
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
@@ -168,14 +168,21 @@ clear.
 ### Draw-path performance
 
 - `DynamicSpriteFont.DrawText` dispatches to a dedicated default path when rotation is 0, origin is
-  0, scale is 1, effects are None, layer depth is 0, and `TextEffect` is `None`. It caches the current
-  atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when `SupersamplingFactor`
-  is 1, or an inverse-scaled draw otherwise. The transformed path keeps per-glyph
-  origin/rotation/scale/effects handling and divides the draw scale by the supersampling factor.
+  0, scale is 1, effects are None, layer depth is 0, both spacings are 0, and `TextEffect` is absent.
+  It caches the current atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when
+  `SupersamplingFactor` is 1, or an inverse-scaled draw otherwise. The fast path still runs when a
+  decoration is present; decoration quads are submitted after the text. The transformed path keeps
+  per-glyph origin/rotation/scale/effects handling and divides the draw scale by the supersampling
+  factor.
 - A draw call takes `TextEffectOptions? effect`; `null` means no effect. `Stroke` submits the glyph at
   every square-ring offset up to `Amount`; `Shadow` submits one `(Amount, Amount)` offset. Both use
   `Color`, which defaults to white. Effect passes run before the main pass and are draw-time only (the
   atlas glyph is unchanged). Keep the no-effect fast path.
+- A draw call also takes `TextDecorationOptions? decoration`; `null` or `TextDecoration.None` draws no
+  line. `Underline` and `Strikethrough` draw one quad per non-empty line after the effect and main
+  passes. `DecorationWidth` is in layout pixels and is scaled by the draw transform; `Color` defaults
+  to `null`, which inherits the main text color. Decoration quads use the atlas's dedicated 1x1 white
+  texture and follow the same flip/rotation/scale transforms as glyphs.
 - `GlyphCache` keeps ASCII metrics, rendered glyphs, and kerning pairs in fixed arrays (ASCII kerning
   is a lazily filled 128×128 table). Non-ASCII falls back to dictionaries. Do not remove these fast
   paths without running `Samples/Benchmark`.
@@ -185,7 +192,8 @@ clear.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth) and must accept the trailing optional
-  `float characterSpacing = 0f, float lineSpacing = 0f, TextEffectOptions? effect = null`.
+  `float characterSpacing = 0f, float lineSpacing = 0f, TextEffectOptions? effect = null,
+  TextDecorationOptions? decoration = null`.
   `TextEffect` has only `Stroke` and `Shadow`; no `None` value.
 - `TextEffectOptions.Amount` must be non-negative; `0` disables effects. Invalid effect kinds throw.
   Effect passes run before the main text pass and use the same atlas glyphs.

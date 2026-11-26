@@ -153,8 +153,14 @@ submits the effect passes, then the main text pass, so effect pixels never cover
 - `Color` defaults to white. Use a contrasting color for visible outlines or shadows.
 - `Amount = 0` is equivalent to no effect; negative values throw.
 
-The fast `SpriteBatch` path is used only when the effect is `None`. Effects reuse the same atlas
-glyphs and layout; they only multiply draw submissions.
+The fast `SpriteBatch` path is used when no effect is present and the transform is the identity. A
+decoration may still be present; its quads are submitted after the text. Effects and decorations reuse
+the same atlas glyphs and layout; they only multiply draw submissions.
+
+Decorations use a separate optional `TextDecorationOptions?`. Each non-empty text line submits one
+solid quad built from the atlas's dedicated 1x1 white texture. The line thickness is in layout pixels,
+is transformed by the draw scale, and the quad follows the same rotation, origin, and flip rules as the
+glyphs.
 
 ## Lifetime, disposal, and threading
 

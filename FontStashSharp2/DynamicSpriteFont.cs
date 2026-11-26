@@ -268,6 +268,328 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			(lineCount * LineSpacing) + ((lineCount - 1) * lineSpacing));
 	}
 
+	private List<DecorationLine> GetDecorationLines(
+		ReadOnlySpan<char> text,
+		float characterSpacing,
+		float lineSpacing)
+	{
+		var lines = new List<DecorationLine>();
+		var lineTop = 0f;
+		var lineWidth = 0f;
+		var hasPrevious = false;
+		var previous = default(GlyphMetrics);
+
+		for (var i = 0; i < text.Length;)
+		{
+			var codepoint = ReadCodepoint(text, ref i);
+
+			switch (codepoint)
+			{
+				case '\r':
+					continue;
+				case '\n':
+					if (lineWidth > 0f)
+					{
+						lines.Add(new DecorationLine(lineWidth, lineTop));
+					}
+
+					lineWidth = 0f;
+					lineTop += LineSpacing + lineSpacing;
+					hasPrevious = false;
+					continue;
+				case '\t':
+					codepoint = ' ';
+					break;
+			}
+
+			var metrics = _glyphCache.GetMetrics(codepoint);
+			if (hasPrevious)
+			{
+				lineWidth += _glyphCache.GetKerning(previous, metrics);
+				lineWidth += characterSpacing;
+			}
+
+			lineWidth += metrics.Advance;
+			hasPrevious = true;
+			previous = metrics;
+		}
+
+		if (lineWidth > 0f)
+		{
+			lines.Add(new DecorationLine(lineWidth, lineTop));
+		}
+
+		return lines;
+	}
+
+	private bool TryGetDecorationGeometry(
+		TextDecorationOptions decoration,
+		DecorationLine line,
+		Vector2 blockSize,
+		SpriteEffects effects,
+		out float x,
+		out float y,
+		out float width,
+		out float thickness)
+	{
+		x = 0f;
+		y = 0f;
+		width = 0f;
+		thickness = 0f;
+
+		if (decoration.Decoration == TextDecoration.None || decoration.DecorationWidth <= 0f)
+		{
+			return false;
+		}
+
+		var baseline = line.Top + Ascent;
+		y = decoration.Decoration == TextDecoration.Underline
+			? baseline - (Descent * 0.5f)
+			: baseline - (Ascent * 0.45f);
+		width = line.Width;
+		thickness = decoration.DecorationWidth;
+
+		if ((effects & SpriteEffects.FlipHorizontally) != 0)
+		{
+			x = blockSize.X - x - width;
+		}
+
+		if ((effects & SpriteEffects.FlipVertically) != 0)
+		{
+			y = blockSize.Y - y - thickness;
+		}
+
+		return true;
+	}
+
+	private static void ValidateTextDecoration(TextDecorationOptions decoration)
+	{
+		if (decoration.Decoration is not (TextDecoration.None
+			or TextDecoration.Underline
+			or TextDecoration.Strikethrough))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(decoration),
+				decoration.Decoration,
+				"Decoration must be None, Underline, or Strikethrough.");
+		}
+
+		if (!float.IsFinite(decoration.DecorationWidth) || decoration.DecorationWidth < 0f)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(decoration),
+				decoration.DecorationWidth,
+				"Decoration width must be finite and non-negative.");
+		}
+	}
+
+#if MONOGAME
+	private void DrawDecorations(
+		SpriteBatch spriteBatch,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
+		TextDecorationOptions decoration)
+	{
+		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
+		var white = _fontSystem.GetWhiteTexture(spriteBatch.GraphicsDevice);
+		var lines = GetDecorationLines(text, characterSpacing, lineSpacing);
+		var lineColor = decoration.Color ?? color;
+
+		foreach (var line in lines)
+		{
+			if (!TryGetDecorationGeometry(decoration, line, blockSize, effects, out var x, out var y, out var width, out var thickness))
+			{
+				continue;
+			}
+
+			var localX = (x - origin.X) * scale.X;
+			var localY = (y - origin.Y) * scale.Y;
+			Vector2 screenPosition;
+			if (rotation == 0f)
+			{
+				screenPosition = new Vector2(position.X + localX, position.Y + localY);
+			}
+			else
+			{
+				var cos = MathF.Cos(rotation);
+				var sin = MathF.Sin(rotation);
+				screenPosition = new Vector2(
+					position.X + (localX * cos) - (localY * sin),
+					position.Y + (localX * sin) + (localY * cos));
+			}
+
+			spriteBatch.Draw(
+				white,
+				screenPosition,
+				null,
+				lineColor,
+				rotation,
+				Vector2.Zero,
+				new Vector2(width * scale.X, thickness * scale.Y),
+				effects,
+				layerDepth);
+		}
+	}
+#endif
+
+	private void DrawDecorations(
+		IFontStashRenderer renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
+		TextDecorationOptions decoration)
+	{
+		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
+		var white = _fontSystem.GetWhiteTexture(GetDevice(renderer));
+		var lines = GetDecorationLines(text, characterSpacing, lineSpacing);
+		var lineColor = decoration.Color ?? color;
+
+		foreach (var line in lines)
+		{
+			if (!TryGetDecorationGeometry(decoration, line, blockSize, effects, out var x, out var y, out var width, out var thickness))
+			{
+				continue;
+			}
+
+			var localX = (x - origin.X) * scale.X;
+			var localY = (y - origin.Y) * scale.Y;
+			Vector2 screenPosition;
+			if (rotation == 0f)
+			{
+				screenPosition = new Vector2(position.X + localX, position.Y + localY);
+			}
+			else
+			{
+				var cos = MathF.Cos(rotation);
+				var sin = MathF.Sin(rotation);
+				screenPosition = new Vector2(
+					position.X + (localX * cos) - (localY * sin),
+					position.Y + (localX * sin) + (localY * cos));
+			}
+
+			DrawGlyph(
+				renderer,
+				white,
+				screenPosition,
+				null,
+				lineColor,
+				rotation,
+				new Vector2(width * scale.X, thickness * scale.Y),
+				effects,
+				layerDepth);
+		}
+	}
+
+	private void DrawDecorations(
+		IFontStashRenderer2 renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
+		TextDecorationOptions decoration)
+	{
+		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
+		var white = _fontSystem.GetWhiteTexture(GetDevice(renderer));
+		var lines = GetDecorationLines(text, characterSpacing, lineSpacing);
+		var lineColor = decoration.Color ?? color;
+
+		foreach (var line in lines)
+		{
+			if (!TryGetDecorationGeometry(decoration, line, blockSize, effects, out var x, out var y, out var width, out var thickness))
+			{
+				continue;
+			}
+
+			var localX = (x - origin.X) * scale.X;
+			var localY = (y - origin.Y) * scale.Y;
+			Vector2 screenPosition;
+			if (rotation == 0f)
+			{
+				screenPosition = new Vector2(position.X + localX, position.Y + localY);
+			}
+			else
+			{
+				var cos = MathF.Cos(rotation);
+				var sin = MathF.Sin(rotation);
+				screenPosition = new Vector2(
+					position.X + (localX * cos) - (localY * sin),
+					position.Y + (localX * sin) + (localY * cos));
+			}
+
+			var cos2 = rotation == 0f ? 1f : MathF.Cos(rotation);
+			var sin2 = rotation == 0f ? 0f : MathF.Sin(rotation);
+			var quadWidth = width * scale.X;
+			var quadHeight = thickness * scale.Y;
+			var right = new Vector2(quadWidth * cos2, quadWidth * sin2);
+			var down = new Vector2(-quadHeight * sin2, quadHeight * cos2);
+
+			var topLeft = new VertexPositionColorTexture(
+				new Vector3(screenPosition.X, screenPosition.Y, layerDepth),
+				lineColor,
+				new Vector2(0f, 0f));
+			var topRight = new VertexPositionColorTexture(
+				new Vector3(screenPosition.X + right.X, screenPosition.Y + right.Y, layerDepth),
+				lineColor,
+				new Vector2(1f, 0f));
+			var bottomLeft = new VertexPositionColorTexture(
+				new Vector3(screenPosition.X + down.X, screenPosition.Y + down.Y, layerDepth),
+				lineColor,
+				new Vector2(0f, 1f));
+			var bottomRight = new VertexPositionColorTexture(
+				new Vector3(screenPosition.X + right.X + down.X, screenPosition.Y + right.Y + down.Y, layerDepth),
+				lineColor,
+				new Vector2(1f, 1f));
+
+			renderer.DrawQuad(white, ref topLeft, ref topRight, ref bottomLeft, ref bottomRight);
+		}
+	}
+
+	private readonly struct DecorationLine
+	{
+		public DecorationLine(float width, float top)
+		{
+			Width = width;
+			Top = top;
+		}
+
+		public float Width { get; }
+
+		public float Top { get; }
+	}
+
 #if MONOGAME
 	/// <summary>
 	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
@@ -434,7 +756,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 
@@ -448,7 +771,16 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			ValidateTextEffect(options);
 		}
 
+		if (decoration is { } decorationOptions)
+		{
+			ValidateTextDecoration(decorationOptions);
+		}
+
 		EnsureAtlasGeneration();
+
+		var decorationValue = decoration.GetValueOrDefault();
+		var hasDecoration = decorationValue.Decoration != TextDecoration.None
+			&& decorationValue.DecorationWidth > 0f;
 
 		if (effect is not { Amount: > 0 } activeEffect)
 		{
@@ -461,22 +793,41 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				&& lineSpacing == 0)
 			{
 				DrawTextDefault(spriteBatch, text, position, color, characterSpacing, lineSpacing);
-				return;
+			}
+			else
+			{
+				DrawTextCore(
+					spriteBatch,
+					text,
+					position,
+					color,
+					rotation,
+					origin,
+					scale,
+					effects,
+					layerDepth,
+					characterSpacing,
+					lineSpacing,
+					Vector2.Zero);
 			}
 
-			DrawTextCore(
-				spriteBatch,
-				text,
-				position,
-				color,
-				rotation,
-				origin,
-				scale,
-				effects,
-				layerDepth,
-				characterSpacing,
-				lineSpacing,
-				Vector2.Zero);
+			if (hasDecoration)
+			{
+				DrawDecorations(
+					spriteBatch,
+					text,
+					position,
+					color,
+					rotation,
+					origin,
+					scale,
+					effects,
+					layerDepth,
+					characterSpacing,
+					lineSpacing,
+					decorationValue);
+			}
+
 			return;
 		}
 
@@ -510,6 +861,23 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			characterSpacing,
 			lineSpacing,
 			Vector2.Zero);
+
+		if (hasDecoration)
+		{
+			DrawDecorations(
+				spriteBatch,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				characterSpacing,
+				lineSpacing,
+				decorationValue);
+		}
 	}
 
 	private void DrawTextCore(
@@ -649,7 +1017,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -663,7 +1032,16 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			ValidateTextEffect(options);
 		}
 
+		if (decoration is { } decorationOptions)
+		{
+			ValidateTextDecoration(decorationOptions);
+		}
+
 		EnsureAtlasGeneration();
+
+		var decorationValue = decoration.GetValueOrDefault();
+		var hasDecoration = decorationValue.Decoration != TextDecoration.None
+			&& decorationValue.DecorationWidth > 0f;
 
 		if (effect is not { Amount: > 0 } activeEffect)
 		{
@@ -680,6 +1058,24 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				characterSpacing,
 				lineSpacing,
 				Vector2.Zero);
+
+			if (hasDecoration)
+			{
+				DrawDecorations(
+					renderer,
+					text,
+					position,
+					color,
+					rotation,
+					origin,
+					scale,
+					effects,
+					layerDepth,
+					characterSpacing,
+					lineSpacing,
+					decorationValue);
+			}
+
 			return;
 		}
 
@@ -713,6 +1109,23 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			characterSpacing,
 			lineSpacing,
 			Vector2.Zero);
+
+		if (hasDecoration)
+		{
+			DrawDecorations(
+				renderer,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				characterSpacing,
+				lineSpacing,
+				decorationValue);
+		}
 	}
 
 	private void DrawTextCore(
@@ -849,7 +1262,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -863,7 +1277,16 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			ValidateTextEffect(options);
 		}
 
+		if (decoration is { } decorationOptions)
+		{
+			ValidateTextDecoration(decorationOptions);
+		}
+
 		EnsureAtlasGeneration();
+
+		var decorationValue = decoration.GetValueOrDefault();
+		var hasDecoration = decorationValue.Decoration != TextDecoration.None
+			&& decorationValue.DecorationWidth > 0f;
 
 		if (effect is not { Amount: > 0 } activeEffect)
 		{
@@ -880,6 +1303,24 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				characterSpacing,
 				lineSpacing,
 				Vector2.Zero);
+
+			if (hasDecoration)
+			{
+				DrawDecorations(
+					renderer,
+					text,
+					position,
+					color,
+					rotation,
+					origin,
+					scale,
+					effects,
+					layerDepth,
+					characterSpacing,
+					lineSpacing,
+					decorationValue);
+			}
+
 			return;
 		}
 
@@ -913,6 +1354,23 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			characterSpacing,
 			lineSpacing,
 			Vector2.Zero);
+
+		if (hasDecoration)
+		{
+			DrawDecorations(
+				renderer,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				characterSpacing,
+				lineSpacing,
+				decorationValue);
+		}
 	}
 
 	private void DrawTextCore(

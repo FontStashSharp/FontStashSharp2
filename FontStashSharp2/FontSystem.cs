@@ -255,6 +255,19 @@ public sealed class FontSystem : IDisposable
 		_fontSources.Clear();
 	}
 
+	internal AtlasTexture GetWhiteTexture(AtlasDevice device)
+	{
+		ThrowIfDisposed();
+
+		var atlas = GetAtlas(device);
+		if (atlas is not TextureAtlas textureAtlas)
+		{
+			throw new InvalidOperationException("Text decorations require a real texture atlas.");
+		}
+
+		return textureAtlas.GetWhiteTexture(device);
+	}
+
 	internal AtlasTexture GetTextureOrThrow(int index)
 	{
 		ThrowIfDisposed();

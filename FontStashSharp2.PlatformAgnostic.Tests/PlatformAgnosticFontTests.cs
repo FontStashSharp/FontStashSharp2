@@ -400,6 +400,276 @@ public sealed class PlatformAgnosticFontTests
 	}
 
 	[Fact]
+	public void Underline_DrawsLineBelowBaselineAfterText()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			decoration: TextDecorationOptions.Underline(2f));
+
+		Assert.Equal(3, renderer.Calls.Count);
+
+		var decoration = renderer.Calls[^1];
+		Assert.Null(decoration.SourceRectangle);
+		Assert.Equal(1, ((FakeTexture)decoration.Texture).Width);
+		Assert.Equal(1, ((FakeTexture)decoration.Texture).Height);
+		Assert.Equal(Color.White, decoration.Color);
+		Assert.Equal(10f, decoration.Position.X);
+		Assert.Equal(
+			20f + font.Ascent - (font.Descent * 0.5f),
+			decoration.Position.Y,
+			3);
+		Assert.Equal(font.MeasureString("AB").X, decoration.Scale.X, 3);
+		Assert.Equal(2f, decoration.Scale.Y);
+	}
+
+	[Fact]
+	public void Strikethrough_DrawsLineThroughText()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			decoration: TextDecorationOptions.Strikethrough(3f));
+
+		Assert.Equal(3, renderer.Calls.Count);
+
+		var decoration = renderer.Calls[^1];
+		Assert.Null(decoration.SourceRectangle);
+		Assert.Equal(
+			20f + font.Ascent - (font.Ascent * 0.45f),
+			decoration.Position.Y,
+			3);
+		Assert.Equal(3f, decoration.Scale.Y);
+	}
+
+	[Fact]
+	public void DecorationWidthAndOffset_ScaleWithDrawScale()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			0f,
+			Vector2.Zero,
+			new Vector2(2f, 3f),
+			SpriteEffects.None,
+			0f,
+			decoration: TextDecorationOptions.Underline(1.5f));
+
+		Assert.Equal(3, renderer.Calls.Count);
+
+		var decoration = renderer.Calls[^1];
+		Assert.Equal(10f, decoration.Position.X);
+		Assert.Equal(
+			20f + ((font.Ascent - (font.Descent * 0.5f)) * 3f),
+			decoration.Position.Y,
+			3);
+		Assert.Equal(font.MeasureString("AB").X * 2f, decoration.Scale.X, 3);
+		Assert.Equal(4.5f, decoration.Scale.Y);
+	}
+
+	[Fact]
+	public void DecorationColor_OverridesOrInheritsMainTextColor()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			Vector2.Zero,
+			Color.White,
+			decoration: TextDecorationOptions.Underline(2f, new Color(255, 0, 0)));
+
+		Assert.Equal(3, renderer.Calls.Count);
+		Assert.Equal(Color.White, renderer.Calls[0].Color);
+		Assert.Equal(new Color(255, 0, 0), renderer.Calls[^1].Color);
+
+		renderer.Calls.Clear();
+
+		var mainColor = new Color(0, 128, 255);
+		font.DrawText(
+			renderer,
+			"AB",
+			Vector2.Zero,
+			mainColor,
+			decoration: TextDecorationOptions.Strikethrough(2f));
+
+		Assert.Equal(3, renderer.Calls.Count);
+		Assert.Equal(mainColor, renderer.Calls[0].Color);
+		Assert.Equal(mainColor, renderer.Calls[^1].Color);
+	}
+
+	[Fact]
+	public void Decoration_DrawsOnceAfterEffectPassesUsingMainColor()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+		var effectColor = new Color(255, 0, 0);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			effect: TextEffectOptions.Shadow(2, effectColor),
+			decoration: TextDecorationOptions.Underline(1f));
+
+		Assert.Equal(5, renderer.Calls.Count);
+		Assert.Equal(effectColor, renderer.Calls[0].Color);
+		Assert.Equal(effectColor, renderer.Calls[1].Color);
+
+		var decoration = renderer.Calls[^1];
+		Assert.Null(decoration.SourceRectangle);
+		Assert.Equal(Color.White, decoration.Color);
+	}
+
+	[Fact]
+	public void DecorationNone_DrawsNoDecoration()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			Vector2.Zero,
+			Color.White,
+			decoration: new TextDecorationOptions(TextDecoration.None, 5f));
+
+		Assert.Equal(2, renderer.Calls.Count);
+		Assert.All(renderer.Calls, call => Assert.NotNull(call.SourceRectangle));
+	}
+
+	[Fact]
+	public void Decoration_RejectsInvalidValues()
+	{
+		Assert.Throws<ArgumentOutOfRangeException>(
+			() => TextDecorationOptions.Underline(-1f));
+		Assert.Throws<ArgumentOutOfRangeException>(
+			() => TextDecorationOptions.Strikethrough(float.NaN));
+		Assert.Throws<ArgumentOutOfRangeException>(
+			() => new TextDecorationOptions((TextDecoration)99));
+
+		Assert.Equal(1f, TextDecorationOptions.Underline().DecorationWidth);
+		Assert.Equal(1f, TextDecorationOptions.Strikethrough().DecorationWidth);
+	}
+
+	[Fact]
+	public void ClearTextures_DisposesDecorationWhiteTexture()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			TextureWidth = 128,
+			TextureHeight = 128,
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			Vector2.Zero,
+			Color.White,
+			decoration: TextDecorationOptions.Underline(1f));
+
+		var textureCount = manager.Textures.Count;
+		Assert.Equal(fontSystem.TextureCount + 1, textureCount);
+
+		fontSystem.ClearTextures();
+
+		Assert.Equal(textureCount, manager.DestroyTextureCalls);
+		Assert.All(manager.Textures, texture => Assert.True(texture.Destroyed));
+	}
+
+	[Fact]
+	public void Decoration_ThroughVertexRenderer_EmitsQuadAfterText()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingVertexRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			decoration: TextDecorationOptions.Underline(2f));
+
+		Assert.Equal(3, renderer.Quads.Count);
+
+		var decoration = renderer.Quads[^1];
+		Assert.Equal(1, ((FakeTexture)decoration.Texture).Width);
+		Assert.Equal(0f, decoration.TopLeft.Position.Z);
+		Assert.Equal(
+			font.MeasureString("AB").X,
+			decoration.TopRight.Position.X - decoration.TopLeft.Position.X,
+			3);
+		Assert.Equal(
+			2f,
+			decoration.BottomLeft.Position.Y - decoration.TopLeft.Position.Y,
+			3);
+	}
+
+	[Fact]
 	public void TextureAtlasFull_FiresOnlyWhenANewPageIsCreated()
 	{
 		var manager = new FakeTextureManager();

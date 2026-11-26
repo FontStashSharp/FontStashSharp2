@@ -84,12 +84,13 @@ public sealed class SpriteFontBaseTests
 	}
 
 	[Fact]
-	public void EffectArguments_AreForwardedToRendererHook()
+	public void EffectAndDecorationArguments_AreForwardedToRendererHook()
 	{
 		var font = new StubFont();
 		var renderer = new StubRenderer();
 
 		var effect = TextEffectOptions.Shadow(3, Color.Red);
+		var decoration = TextDecorationOptions.Underline(2.5f, Color.Blue);
 
 		font.DrawText(
 			renderer,
@@ -98,17 +99,23 @@ public sealed class SpriteFontBaseTests
 			Color.White,
 			characterSpacing: 2,
 			lineSpacing: 4,
-			effect: effect);
+			effect: effect,
+			decoration: decoration);
 
 		Assert.NotNull(font.LastEffect);
 		Assert.Equal(TextEffect.Shadow, font.LastEffect.Value.Effect);
 		Assert.Equal(3, font.LastEffect.Value.Amount);
 		Assert.Equal(Color.Red, font.LastEffect.Value.Color);
+		Assert.NotNull(font.LastDecoration);
+		Assert.Equal(TextDecoration.Underline, font.LastDecoration.Value.Decoration);
+		Assert.Equal(2.5f, font.LastDecoration.Value.DecorationWidth);
+		Assert.Equal(Color.Blue, font.LastDecoration.Value.Color);
 		Assert.Equal(2f, font.LastCharacterSpacing);
 		Assert.Equal(4f, font.LastLineSpacing);
 
 		font.DrawText((SpriteBatch)null!, "beta", Vector2.Zero, Color.White);
 		Assert.Null(font.LastEffect);
+		Assert.Null(font.LastDecoration);
 		Assert.Equal(0f, font.LastCharacterSpacing);
 		Assert.Equal(0f, font.LastLineSpacing);
 	}
@@ -197,6 +204,8 @@ public sealed class SpriteFontBaseTests
 
 		public TextEffectOptions? LastEffect { get; private set; }
 
+		public TextDecorationOptions? LastDecoration { get; private set; }
+
 		public float LastCharacterSpacing { get; private set; }
 
 		public float LastLineSpacing { get; private set; }
@@ -228,10 +237,12 @@ public sealed class SpriteFontBaseTests
 			float layerDepth,
 			float characterSpacing = 0f,
 			float lineSpacing = 0f,
-			TextEffectOptions? effect = null)
+			TextEffectOptions? effect = null,
+			TextDecorationOptions? decoration = null)
 		{
 			LastDrawnText = text.ToString();
 			LastEffect = effect;
+			LastDecoration = decoration;
 			LastCharacterSpacing = characterSpacing;
 			LastLineSpacing = lineSpacing;
 		}
@@ -248,7 +259,8 @@ public sealed class SpriteFontBaseTests
 			float layerDepth,
 			float characterSpacing = 0f,
 			float lineSpacing = 0f,
-			TextEffectOptions? effect = null)
+			TextEffectOptions? effect = null,
+			TextDecorationOptions? decoration = null)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -256,6 +268,7 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
+			LastDecoration = decoration;
 			LastCharacterSpacing = characterSpacing;
 			LastLineSpacing = lineSpacing;
 		}
@@ -272,7 +285,8 @@ public sealed class SpriteFontBaseTests
 			float layerDepth,
 			float characterSpacing = 0f,
 			float lineSpacing = 0f,
-			TextEffectOptions? effect = null)
+			TextEffectOptions? effect = null,
+			TextDecorationOptions? decoration = null)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -280,6 +294,7 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
+			LastDecoration = decoration;
 			LastCharacterSpacing = characterSpacing;
 			LastLineSpacing = lineSpacing;
 		}

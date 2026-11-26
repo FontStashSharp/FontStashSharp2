@@ -72,6 +72,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	/// <remarks>
 	/// This is the low-level rendering hook used by <see cref="SpriteBatchExtensions"/>.
 	/// Custom fonts derive <see cref="SpriteFontBase"/> and implement this method.
@@ -88,7 +89,8 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null);
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null);
 
 	/// <summary>
 	/// Draws a span of characters at a position with no rotation or scaling.
@@ -100,6 +102,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		ReadOnlySpan<char> text,
@@ -107,7 +110,8 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		DrawText(
 			spriteBatch,
@@ -121,7 +125,8 @@ public abstract class SpriteFontBase
 			0f,
 			characterSpacing,
 			lineSpacing,
-			effect);
+			effect,
+			decoration);
 	}
 
 	/// <summary>
@@ -139,6 +144,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		string text,
@@ -151,10 +157,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -167,6 +174,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		string text,
@@ -174,10 +182,11 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(spriteBatch, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -195,6 +204,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		StringBuilder text,
@@ -207,10 +217,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -223,6 +234,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		StringBuilder text,
@@ -230,10 +242,11 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 #endif
@@ -253,6 +266,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public abstract void DrawText(
 		IFontStashRenderer renderer,
 		ReadOnlySpan<char> text,
@@ -265,7 +279,8 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null);
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null);
 
 	/// <summary>
 	/// Draws a span of characters through a custom renderer at a position with no rotation or scaling.
@@ -277,6 +292,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		ReadOnlySpan<char> text,
@@ -284,7 +300,8 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		DrawText(
 			renderer,
@@ -298,7 +315,8 @@ public abstract class SpriteFontBase
 			0f,
 			characterSpacing,
 			lineSpacing,
-			effect);
+			effect,
+			decoration);
 	}
 
 	/// <summary>
@@ -316,6 +334,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		string text,
@@ -328,10 +347,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -344,6 +364,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		string text,
@@ -351,10 +372,11 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -372,6 +394,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		StringBuilder text,
@@ -384,10 +407,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -401,6 +425,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		StringBuilder text,
@@ -408,10 +433,11 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -429,6 +455,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public abstract void DrawText(
 		IFontStashRenderer2 renderer,
 		ReadOnlySpan<char> text,
@@ -441,7 +468,8 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null);
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null);
 
 	/// <summary>
 	/// Draws a span of characters through a vertex-level renderer at a position with no rotation or
@@ -454,6 +482,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		ReadOnlySpan<char> text,
@@ -461,7 +490,8 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		DrawText(
 			renderer,
@@ -475,7 +505,8 @@ public abstract class SpriteFontBase
 			0f,
 			characterSpacing,
 			lineSpacing,
-			effect);
+			effect,
+			decoration);
 	}
 
 	/// <summary>
@@ -493,6 +524,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		string text,
@@ -505,10 +537,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -521,6 +554,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		string text,
@@ -528,10 +562,11 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -550,6 +585,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		StringBuilder text,
@@ -562,10 +598,11 @@ public abstract class SpriteFontBase
 		float layerDepth,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect, decoration);
 	}
 
 	/// <summary>
@@ -579,6 +616,7 @@ public abstract class SpriteFontBase
 	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
 	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
+	/// <param name="decoration">The optional underline or strikethrough; <see langword="null"/> draws no decoration.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		StringBuilder text,
@@ -586,9 +624,10 @@ public abstract class SpriteFontBase
 		Color color,
 		float characterSpacing = 0f,
 		float lineSpacing = 0f,
-		TextEffectOptions? effect = null)
+		TextEffectOptions? effect = null,
+		TextDecorationOptions? decoration = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect, decoration);
 	}
 }

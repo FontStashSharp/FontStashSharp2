@@ -8,8 +8,8 @@ namespace TextEffectsSample;
 
 /// <summary>
 /// Demonstrates a null <see cref="TextEffectOptions"/> (no effect),
-/// <see cref="TextEffect.Stroke"/>, and <see cref="TextEffect.Shadow"/> through the SpriteBatch draw
-/// overloads.
+/// <see cref="TextEffect.Stroke"/>, <see cref="TextEffect.Shadow"/>, and
+/// <see cref="TextDecorationOptions"/> through the SpriteBatch draw overloads.
 /// </summary>
 public sealed class TextEffectsGame : Game
 {
@@ -129,17 +129,19 @@ public sealed class TextEffectsGame : Game
 		batch.DrawString(title, "Text effects", new Vector2(56f, 28f), Text);
 		batch.DrawString(
 			subtitle,
-			"null (no effect), TextEffect.Stroke, and TextEffect.Shadow through SpriteBatch.DrawString",
+			"TextEffect.Stroke, TextEffect.Shadow, and TextDecorationOptions through SpriteBatch.DrawString",
 			new Vector2(58f, 92f),
 			Muted);
 		batch.Draw(_pixel, new Rectangle(56, 124, Width - 112, 1), Line);
 
-		batch.DrawString(section, "EFFECTS", new Vector2(56f, 146f), Accent);
+		batch.DrawString(section, "EFFECTS & DECORATIONS", new Vector2(56f, 146f), Accent);
 		DrawEffectRow(batch, label, demo, 176f, "None", "Plain text", Text, null);
 		DrawEffectRow(batch, label, demo, 238f, "Stroke / 1", "Stroke 1 px", Text, TextEffectOptions.Stroke(1, Accent));
 		DrawEffectRow(batch, label, demo, 300f, "Stroke / 2", "Stroke 2 px", Accent, TextEffectOptions.Stroke(2, Text));
 		DrawEffectRow(batch, label, demo, 362f, "Shadow / 2", "Shadow 2 px", Text, TextEffectOptions.Shadow(2, new Color(80, 90, 120)));
 		DrawEffectRow(batch, label, demo, 424f, "Shadow / 6", "Shadow 6 px", Warm, TextEffectOptions.Shadow(6, new Color(120, 70, 30)));
+		DrawEffectRow(batch, label, demo, 486f, "Underline", "Underlined", Accent, null, TextDecorationOptions.Underline(2f, Warm));
+		DrawEffectRow(batch, label, demo, 548f, "Strike", "Struck through", Warm, null, TextDecorationOptions.Strikethrough(2f, Accent));
 
 		batch.DrawString(section, "WITH TRANSFORMS", new Vector2(720f, 146f), Accent);
 		batch.Draw(_pixel, new Rectangle(720, 170, Width - 776, 1), Line);
@@ -157,7 +159,8 @@ public sealed class TextEffectsGame : Game
 			1f,
 			SpriteEffects.None,
 			0f,
-			effect: TextEffectOptions.Stroke(2, Text));
+			effect: TextEffectOptions.Stroke(2, Text),
+			decoration: TextDecorationOptions.Underline(1.5f));
 
 		var scaledFont = _fontSystem.GetFont(24f);
 		batch.DrawString(
@@ -189,7 +192,8 @@ public sealed class TextEffectsGame : Game
 			1f,
 			SpriteEffects.FlipHorizontally,
 			0f,
-			effect: TextEffectOptions.Stroke(1, Accent));
+			effect: TextEffectOptions.Stroke(1, Accent),
+			decoration: TextDecorationOptions.Strikethrough(1.5f));
 
 		var largeFont = _fontSystem.GetFont(58f);
 		batch.DrawString(
@@ -204,19 +208,19 @@ public sealed class TextEffectsGame : Game
 			0f,
 			effect: TextEffectOptions.Shadow(5, new Color(80, 160, 140)));
 
-		batch.Draw(_pixel, new Rectangle(56, 590, Width - 112, 1), Line);
+		batch.Draw(_pixel, new Rectangle(56, 606, Width - 112, 1), Line);
 		batch.DrawString(
 			small,
 			string.Create(
 				CultureInfo.InvariantCulture,
 				$"Atlas pages: {_fontSystem.TextureCount}   |   Rasterized glyphs: {demo.GlyphCount}   |   Press Esc to exit   |   --screenshot <file.png>"),
-			new Vector2(56f, 610f),
+			new Vector2(56f, 622f),
 			Muted);
 
 		batch.Draw(_pixel, new Rectangle(0, Height - 40, Width, 40), Panel);
 		batch.DrawString(
 			small,
-			"Pass a TextEffectOptions value to draw an effect; null draws plain text.",
+			"Pass TextEffectOptions or TextDecorationOptions; null draws plain text.",
 			new Vector2(56f, Height - 27f),
 			Muted);
 	}
@@ -229,7 +233,8 @@ public sealed class TextEffectsGame : Game
 		string label,
 		string text,
 		Color color,
-		TextEffectOptions? effect)
+		TextEffectOptions? effect,
+		TextDecorationOptions? decoration = null)
 	{
 		batch.DrawString(labelFont, label, new Vector2(56f, y + 8f), Muted);
 		batch.DrawString(
@@ -237,7 +242,8 @@ public sealed class TextEffectsGame : Game
 			text,
 			new Vector2(220f, y),
 			color,
-			effect: effect);
+			effect: effect,
+			decoration: decoration);
 	}
 
 	private void DrawScreenshotFrame()
