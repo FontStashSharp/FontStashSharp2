@@ -243,7 +243,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		return _glyphCache.RasterizedGlyphCount - before;
 	}
 
-	internal override void DrawText(
+	/// <inheritdoc />
+	public override void DrawText(
 		SpriteBatch spriteBatch,
 		ReadOnlySpan<char> text,
 		Vector2 position,

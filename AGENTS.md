@@ -114,8 +114,9 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth).
-- `SpriteFontBase` is the font parameter type. Internal abstract `DrawText` intentionally prevents
-  external derivation.
+- `SpriteFontBase` is the font parameter type. Its public abstract span-based `DrawText` is the
+  rendering hook; `string`/`StringBuilder` overloads, plus position/color conveniences, delegate to
+  it. Custom fonts can derive the type and implement the span hook. The extension methods call it.
 - Fonts are cached per exact float size by `FontSystem.GetFont`; repeated calls return the same
   instance and glyph cache.
 - `AddFont` clears future font instances (new fallback chain). Existing fonts keep their snapshot.
