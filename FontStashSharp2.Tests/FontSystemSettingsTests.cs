@@ -13,7 +13,7 @@ public sealed class FontSystemSettingsTests
 		Assert.Equal(1, settings.GlyphPadding);
 		Assert.Equal(2f, settings.SupersamplingFactor);
 		Assert.True(settings.UseKerning);
-		Assert.True(settings.PremultiplyAlpha);
+		Assert.Equal(GlyphAlphaMode.Premultiplied, settings.AlphaMode);
 	}
 
 	[Theory]
@@ -77,19 +77,35 @@ public sealed class FontSystemSettingsTests
 	}
 
 	[Fact]
+	public void AlphaMode_RejectsUndefinedValues()
+	{
+		var settings = new FontSystemSettings();
+
+		Assert.Throws<ArgumentOutOfRangeException>(() => settings.AlphaMode = (GlyphAlphaMode)99);
+	}
+
+	[Fact]
 	public void Settings_AreCopiedByFontSystem()
 	{
-		var settings = new FontSystemSettings { GlyphPadding = 3, SupersamplingFactor = 1.5f };
+		var settings = new FontSystemSettings
+		{
+			GlyphPadding = 3,
+			SupersamplingFactor = 1.5f,
+			AlphaMode = GlyphAlphaMode.NoAntialiasing,
+		};
 		var atlas = new RecordingGlyphAtlas();
 		using var fontSystem = TestFonts.CreateFontSystem(atlas, settings);
 
 		settings.GlyphPadding = 9;
 		settings.SupersamplingFactor = 3f;
+		settings.AlphaMode = GlyphAlphaMode.NonPremultiplied;
 
 		// The system holds its own validated copy; the public settings object can be reused safely.
 		Assert.Equal(3, fontSystem.Settings.GlyphPadding);
 		Assert.Equal(1.5f, fontSystem.Settings.SupersamplingFactor);
+		Assert.Equal(GlyphAlphaMode.NoAntialiasing, fontSystem.Settings.AlphaMode);
 		Assert.Equal(9, settings.GlyphPadding);
 		Assert.Equal(3f, settings.SupersamplingFactor);
+		Assert.Equal(GlyphAlphaMode.NonPremultiplied, settings.AlphaMode);
 	}
 }

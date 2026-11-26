@@ -133,6 +133,57 @@ public sealed class PlatformAgnosticFontTests
 	}
 
 	[Fact]
+	public void AlphaMode_NonPremultiplied_StoresWhiteRgbAndCoverageAlpha()
+	{
+		var texture = DrawGlyph(GlyphAlphaMode.NonPremultiplied);
+		var pixels = texture.Pixels;
+		var visiblePixels = 0;
+
+		for (var i = 0; i < pixels.Length; i += 4)
+		{
+			var alpha = pixels[i + 3];
+			if (alpha == 0)
+			{
+				continue;
+			}
+
+			visiblePixels++;
+			Assert.Equal(255, pixels[i]);
+			Assert.Equal(255, pixels[i + 1]);
+			Assert.Equal(255, pixels[i + 2]);
+		}
+
+		Assert.True(visiblePixels > 0);
+	}
+
+	[Fact]
+	public void AlphaMode_NoAntialiasing_StoresOnlyTransparentOrOpaquePixels()
+	{
+		var texture = DrawGlyph(GlyphAlphaMode.NoAntialiasing);
+		var pixels = texture.Pixels;
+		var opaquePixels = 0;
+
+		for (var i = 0; i < pixels.Length; i += 4)
+		{
+			var red = pixels[i];
+			var green = pixels[i + 1];
+			var blue = pixels[i + 2];
+			var alpha = pixels[i + 3];
+
+			var transparent = red == 0 && green == 0 && blue == 0 && alpha == 0;
+			var opaque = red == 255 && green == 255 && blue == 255 && alpha == 255;
+			Assert.True(transparent || opaque, $"Unexpected RGBA pixel: {red},{green},{blue},{alpha}.");
+
+			if (opaque)
+			{
+				opaquePixels++;
+			}
+		}
+
+		Assert.True(opaquePixels > 0);
+	}
+
+	[Fact]
 	public void TextureAtlasFull_FiresOnlyWhenANewPageIsCreated()
 	{
 		var manager = new FakeTextureManager();
@@ -231,6 +282,21 @@ public sealed class PlatformAgnosticFontTests
 
 		font.DrawText(renderer, "Hello", Vector2.Zero, Color.White);
 		Assert.True(font.GlyphCount > 0);
+	}
+
+	private static FakeTexture DrawGlyph(GlyphAlphaMode alphaMode)
+	{
+		var manager = new FakeTextureManager();
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+			AlphaMode = alphaMode,
+		});
+		var font = fontSystem.GetFont(24f);
+		font.DrawText(new RecordingRenderer(manager), "A", new Vector2(10f, 10f), Color.White);
+
+		Assert.NotEmpty(manager.Textures);
+		return manager.Textures[0];
 	}
 
 	private static void AssertVertexInBounds(VertexPositionColorTexture vertex)

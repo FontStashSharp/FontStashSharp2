@@ -206,7 +206,7 @@ protected override void UnloadContent()
 | `GlyphPadding` | 1 | Transparent/extruded border around each glyph. |
 | `SupersamplingFactor` | 2 | Glyphs rasterize at `FontSize * factor`; atlas memory grows ~factor². |
 | `UseKerning` | `true` | Apply kerning pairs. |
-| `PremultiplyAlpha` | `true` | Store RGB = alpha in the atlas (matches `BlendState.AlphaBlend`). |
+| `AlphaMode` | `Premultiplied` | How coverage becomes RGBA: `Premultiplied`, `NonPremultiplied`, or `NoAntialiasing`. |
 
 Settings are copied when the `FontSystem` is constructed; reuse or mutate the settings object freely
 afterwards.
@@ -223,8 +223,11 @@ afterwards.
   downscale is filtered; point sampling will alias. See [Supersampling](articles/supersampling.md) for the full
   explanation and factor guidance.
 - Bitmap fonts are not supported; a scalable TTF/OTF outline is required.
-- Text colors should be premultiplied when using the default `BlendState.AlphaBlend`. Opaque colors
-  such as `Color.White` and `Color.Red` are already premultiplied.
+- Text colors should be premultiplied when using the default `GlyphAlphaMode.Premultiplied` atlas mode
+  and `BlendState.AlphaBlend`. Opaque colors such as `Color.White` and `Color.Red` are already
+  premultiplied.
+- Use `GlyphAlphaMode.NonPremultiplied` with standard source-alpha blending, or
+  `GlyphAlphaMode.NoAntialiasing` to threshold coverage to fully opaque or fully transparent pixels.
 
 ## Platform-agnostic package
 

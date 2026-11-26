@@ -151,8 +151,9 @@ clear.
   rectangles exclude the padding.
 - `SupersamplingFactor` (default 2) multiplies glyph pixel dimensions; atlas usage grows roughly with
   the square of the factor. Do not apply the factor to advances, kerning, or line metrics.
-- MonoGame texture pages are `SurfaceFormat.Color`; both builds upload RGBA and premultiply by default
-  (RGB = alpha).
+- MonoGame texture pages are `SurfaceFormat.Color`; both builds upload RGBA. `AlphaMode` defaults to
+  `Premultiplied` (`a,a,a,a`); `NonPremultiplied` stores white + coverage; `NoAntialiasing` stores
+  fully opaque or fully transparent pixels.
 - The atlas-full event is raised inside the atlas lock right before `CreatePage`. Do not draw or call
   `ClearTextures` from the handler; inspect the event args and return.
 - `TextureAtlas` is lock-protected. `FontSystem`, fonts, and `GlyphCache` are **not** thread-safe.

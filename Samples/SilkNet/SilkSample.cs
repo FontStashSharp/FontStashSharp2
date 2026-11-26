@@ -80,7 +80,7 @@ internal sealed class SilkSample : IDisposable
 			SupersamplingFactor = 2f,
 			UseKerning = true,
 			// Straight RGBA + SrcAlpha blending keeps the sample easy to compare with engine defaults.
-			PremultiplyAlpha = false,
+			AlphaMode = GlyphAlphaMode.NonPremultiplied,
 		});
 
 		var fontPath = Path.Combine(AppContext.BaseDirectory, "Content", "ABeeZee-Regular.ttf");

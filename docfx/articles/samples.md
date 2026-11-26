@@ -84,7 +84,8 @@ A minimal OpenGL 3.3 text renderer built on `FontStashSharp2.PlatformAgnostic` a
 - implements `ITexture2DManager` with OpenGL textures (`TexImage2D`/`TexSubImage2D`);
 - implements `IFontStashRenderer` with a shader, a unit-quad VBO, and one draw per glyph;
 - loads the TTF at runtime, draws rotated/scaled text and `SpriteEffects` flips;
-- sets `PremultiplyAlpha = false` and uses standard `SrcAlpha`/`OneMinusSrcAlpha` blending.
+- sets `AlphaMode = GlyphAlphaMode.NonPremultiplied` and uses standard
+  `SrcAlpha`/`OneMinusSrcAlpha` blending.
 
 ```bash
 dotnet run --project Samples/OpenTK

@@ -15,6 +15,7 @@ public sealed class FontSystemSettings
 	private int _maxTextureCount = 8;
 	private int _glyphPadding = 1;
 	private float _supersamplingFactor = 2f;
+	private GlyphAlphaMode _alphaMode = GlyphAlphaMode.Premultiplied;
 
 	/// <summary>
 	/// Gets or sets the width, in pixels, of a single atlas page. Defaults to 1024.
@@ -125,13 +126,25 @@ public sealed class FontSystemSettings
 	public bool UseKerning { get; set; } = true;
 
 	/// <summary>
-	/// Gets or sets whether glyph alpha is premultiplied into RGB. Defaults to <see langword="true"/>.
+	/// Gets or sets how glyph coverage is converted into RGBA atlas pixels. Defaults to
+	/// <see cref="GlyphAlphaMode.Premultiplied"/>.
 	/// </summary>
 	/// <remarks>
-	/// Standard alpha blending expects premultiplied textures. Set this to <see langword="false"/>
-	/// only when drawing with a non-premultiplied blend state.
+	/// <see cref="GlyphAlphaMode.Premultiplied"/> stores <c>(a, a, a, a)</c> and works with a
+	/// premultiplied alpha blend state. <see cref="GlyphAlphaMode.NonPremultiplied"/> stores
+	/// <c>(255, 255, 255, a)</c> and works with standard source-alpha blending.
+	/// <see cref="GlyphAlphaMode.NoAntialiasing"/> stores <c>(255, 255, 255, 255)</c> for non-zero
+	/// coverage and leaves zero coverage transparent.
 	/// </remarks>
-	public bool PremultiplyAlpha { get; set; } = true;
+	public GlyphAlphaMode AlphaMode
+	{
+		get => _alphaMode;
+		set
+		{
+			ValidateAlphaMode(value);
+			_alphaMode = value;
+		}
+	}
 
 	internal FontSystemSettings Clone()
 	{
@@ -143,7 +156,7 @@ public sealed class FontSystemSettings
 			GlyphPadding = _glyphPadding,
 			SupersamplingFactor = _supersamplingFactor,
 			UseKerning = UseKerning,
-			PremultiplyAlpha = PremultiplyAlpha,
+			AlphaMode = _alphaMode,
 		};
 	}
 
@@ -175,6 +188,21 @@ public sealed class FontSystemSettings
 				nameof(SupersamplingFactor),
 				_supersamplingFactor,
 				"Supersampling factor must be finite and at least 1.0.");
+		}
+
+		ValidateAlphaMode(_alphaMode);
+	}
+
+	private static void ValidateAlphaMode(GlyphAlphaMode value)
+	{
+		if (value is not (GlyphAlphaMode.Premultiplied
+			or GlyphAlphaMode.NonPremultiplied
+			or GlyphAlphaMode.NoAntialiasing))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(AlphaMode),
+				value,
+				"AlphaMode must be Premultiplied, NonPremultiplied, or NoAntialiasing.");
 		}
 	}
 }

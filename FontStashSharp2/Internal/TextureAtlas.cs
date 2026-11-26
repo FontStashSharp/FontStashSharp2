@@ -13,7 +13,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 	private readonly int _width;
 	private readonly int _height;
 	private readonly int _padding;
-	private readonly bool _premultiplyAlpha;
+	private readonly GlyphAlphaMode _alphaMode;
 	private readonly int _maxTextureCount;
 	private readonly Action<TextureAtlasFullEventArgs>? _atlasFull;
 	private readonly List<Page> _pages = new();
@@ -27,7 +27,7 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 		_width = settings.TextureWidth;
 		_height = settings.TextureHeight;
 		_padding = settings.GlyphPadding;
-		_premultiplyAlpha = settings.PremultiplyAlpha;
+		_alphaMode = settings.AlphaMode;
 		_maxTextureCount = settings.MaxTextureCount;
 		_atlasFull = atlasFull;
 	}
@@ -273,19 +273,31 @@ internal sealed class TextureAtlas : IGlyphAtlas, IDisposable
 					destination[offset + 2] = 0;
 					destination[offset + 3] = 0;
 				}
-				else if (_premultiplyAlpha)
-				{
-					destination[offset] = alpha;
-					destination[offset + 1] = alpha;
-					destination[offset + 2] = alpha;
-					destination[offset + 3] = alpha;
-				}
 				else
 				{
-					destination[offset] = 255;
-					destination[offset + 1] = 255;
-					destination[offset + 2] = 255;
-					destination[offset + 3] = alpha;
+					switch (_alphaMode)
+					{
+						case GlyphAlphaMode.Premultiplied:
+							destination[offset] = alpha;
+							destination[offset + 1] = alpha;
+							destination[offset + 2] = alpha;
+							destination[offset + 3] = alpha;
+							break;
+						case GlyphAlphaMode.NonPremultiplied:
+							destination[offset] = 255;
+							destination[offset + 1] = 255;
+							destination[offset + 2] = 255;
+							destination[offset + 3] = alpha;
+							break;
+						case GlyphAlphaMode.NoAntialiasing:
+							destination[offset] = 255;
+							destination[offset + 1] = 255;
+							destination[offset + 2] = 255;
+							destination[offset + 3] = 255;
+							break;
+						default:
+							throw new InvalidOperationException($"Unsupported glyph alpha mode: {_alphaMode}.");
+					}
 				}
 			}
 		}

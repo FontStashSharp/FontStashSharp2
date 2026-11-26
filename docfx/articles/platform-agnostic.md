@@ -47,10 +47,11 @@ public sealed class MyTextureManager : ITexture2DManager
 }
 ```
 
-The atlas uses RGBA bytes. `PremultiplyAlpha` defaults to `true`, so RGB already equals alpha; use a
-premultiplied alpha blend state, or set `PremultiplyAlpha = false` and upload straight alpha. The
-`bounds` argument identifies the dirty region, so the engine can update a sub-rectangle instead of
-re-uploading the whole page.
+The atlas uses RGBA bytes. `AlphaMode` defaults to `GlyphAlphaMode.Premultiplied`, so RGB equals
+alpha; use a premultiplied alpha blend state. Set `GlyphAlphaMode.NonPremultiplied` for straight alpha
+with standard source-alpha blending, or `GlyphAlphaMode.NoAntialiasing` to threshold coverage to fully
+opaque or fully transparent pixels. The `bounds` argument identifies the dirty region, so the engine
+can update a sub-rectangle instead of re-uploading the whole page.
 
 `FontSystem.Dispose` calls `DestroyTexture` for every atlas page it created.
 

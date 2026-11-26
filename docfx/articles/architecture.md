@@ -53,7 +53,7 @@ GlyphCache.GetRenderedGlyph(codepoint)
         │
         ├── TextureAtlas.Add(coverage, width, height)
         │       ├── pack a padded slot (new page if necessary)
-        │       ├── convert 8-bit alpha to premultiplied RGBA
+        │       ├── convert 8-bit coverage to RGBA (AlphaMode)
         │       ├── extrude edges into padding
         │       └── Texture2D.SetData(slot rectangle)
         │
@@ -124,8 +124,10 @@ contracts and a complete example.
   to the renderer covers only the glyph itself.
 - **Supersampling.** Glyphs are rasterized at `FontSize * SupersamplingFactor`; atlas usage therefore
   grows roughly with the square of the factor.
-- **Premultiplied alpha.** By default a coverage value `a` becomes RGBA `(a, a, a, a)`. This matches
-  `BlendState.AlphaBlend`. Set `PremultiplyAlpha = false` for non-premultiplied blending.
+- **Alpha modes.** `AlphaMode` controls how coverage becomes RGBA. `Premultiplied` (default) stores
+  `(a, a, a, a)` and matches `BlendState.AlphaBlend`; `NonPremultiplied` stores `(255, 255, 255, a)`
+  for source-alpha blending; `NoAntialiasing` stores `(255, 255, 255, 255)` for non-zero coverage and
+  transparent black otherwise.
 - **Pages.** Pages are created lazily. `MaxTextureCount` bounds growth and produces a descriptive
   exception when exceeded. A glyph larger than a page also throws a descriptive exception.
 - **Growth notification.** When no existing page can fit the next glyph, a new page is created.
