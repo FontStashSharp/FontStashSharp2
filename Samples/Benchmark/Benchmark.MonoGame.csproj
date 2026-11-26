@@ -10,7 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(LatestMonoGameVersion)" />
-    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+    <PackageReference Include="StbTrueTypeNext" Version="$(StbTrueTypeNextVersion)" />
     <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.MonoGame.csproj" />
   </ItemGroup>
 

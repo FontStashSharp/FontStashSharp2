@@ -45,7 +45,9 @@ dotnet docfx docfx/docfx.json
 ```
 
 The library and tests pin MonoGame 3.8.1.303 through `MonoGameVersion`. Samples use the latest
-MonoGame 3.8.6.1 through `LatestMonoGameVersion`.
+MonoGame 3.8.6.1 through `LatestMonoGameVersion`. StbTrueTypeNext is pinned through
+`StbTrueTypeNextVersion`. The package/assembly version is defined once in `Directory.Build.props`; do
+not add per-project `<Version>` elements.
 
 The screenshot mode is also a useful end-to-end smoke test on a machine with a graphics device.
 

@@ -4,7 +4,10 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
+    <!-- Single source of truth for the library package/assembly version. -->
+    <Version>0.1.0</Version>
     <MonoGameVersion>3.8.1.303</MonoGameVersion>
     <LatestMonoGameVersion>3.8.6.1</LatestMonoGameVersion>
+    <StbTrueTypeNextVersion>1.0.3</StbTrueTypeNextVersion>
   </PropertyGroup>
 </Project>

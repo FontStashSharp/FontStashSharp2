@@ -6,7 +6,6 @@
     <AssemblyName>FontStashSharp2.PlatformAgnostic</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FontStashSharp2.PlatformAgnostic</PackageId>
-    <Version>0.1.0</Version>
     <Authors>FontStashSharp2 contributors</Authors>
     <Description>On-demand TrueType text rendering for any C# game engine.</Description>
     <PackageTags>font;truetype;text;stb_truetype;gamedev;platform-agnostic</PackageTags>
@@ -25,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+    <PackageReference Include="StbTrueTypeNext" Version="$(StbTrueTypeNextVersion)" />
   </ItemGroup>
 
   <ItemGroup>

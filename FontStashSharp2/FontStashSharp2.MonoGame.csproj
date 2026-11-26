@@ -7,7 +7,6 @@
     <AssemblyName>FontStashSharp2</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>FontStashSharp2</PackageId>
-    <Version>0.1.0</Version>
     <Authors>FontStashSharp2 contributors</Authors>
     <Description>On-demand TrueType text rendering for MonoGame, drawn through SpriteBatch.</Description>
     <PackageTags>monogame;font;truetype;text;spritebatch;stb_truetype;gamedev</PackageTags>
@@ -24,7 +23,7 @@
       any compatible MonoGame backend (DesktopGL, WindowsDX, Android, iOS, etc.).
     -->
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(MonoGameVersion)" PrivateAssets="All" />
-    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+    <PackageReference Include="StbTrueTypeNext" Version="$(StbTrueTypeNextVersion)" />
   </ItemGroup>
 
   <ItemGroup>
