@@ -157,7 +157,7 @@ public sealed class TextEffectsGame : Game
 			1f,
 			SpriteEffects.None,
 			0f,
-			TextEffectOptions.Stroke(2, Text));
+			effect: TextEffectOptions.Stroke(2, Text));
 
 		var scaledFont = _fontSystem.GetFont(24f);
 		batch.DrawString(
@@ -170,7 +170,7 @@ public sealed class TextEffectsGame : Game
 			1.5f,
 			SpriteEffects.None,
 			0f,
-			TextEffectOptions.Shadow(3, new Color(120, 70, 30)));
+			effect: TextEffectOptions.Shadow(3, new Color(120, 70, 30)));
 
 		batch.DrawString(
 			small,
@@ -189,7 +189,7 @@ public sealed class TextEffectsGame : Game
 			1f,
 			SpriteEffects.FlipHorizontally,
 			0f,
-			TextEffectOptions.Stroke(1, Accent));
+			effect: TextEffectOptions.Stroke(1, Accent));
 
 		var largeFont = _fontSystem.GetFont(58f);
 		batch.DrawString(
@@ -202,7 +202,7 @@ public sealed class TextEffectsGame : Game
 			1f,
 			SpriteEffects.None,
 			0f,
-			TextEffectOptions.Shadow(5, new Color(80, 160, 140)));
+			effect: TextEffectOptions.Shadow(5, new Color(80, 160, 140)));
 
 		batch.Draw(_pixel, new Rectangle(56, 590, Width - 112, 1), Line);
 		batch.DrawString(

@@ -84,7 +84,9 @@ logical layout pixels so advances, kerning, ascent, and line spacing remain base
 `FontSize`. This is what makes scaled text sharper without changing layout. See
 [Supersampling](supersampling.md) for the quality/memory tradeoffs.
 
-The first baseline is `position.Y + Ascent`; new lines add `LineSpacing`. StbTrueTypeNext bitmap Y
+The first baseline is `position.Y + Ascent`; new lines add `LineSpacing` plus the optional draw
+`lineSpacing`. Glyph advances include the optional draw `characterSpacing`. Both spacing values are in
+layout pixels and are transformed by the draw scale. StbTrueTypeNext bitmap Y
 offsets are baseline-relative with positive Y downward, so no sign flip is needed.
 
 ## Drawing transform

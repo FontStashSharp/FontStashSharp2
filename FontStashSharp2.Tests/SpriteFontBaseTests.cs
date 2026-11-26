@@ -96,15 +96,21 @@ public sealed class SpriteFontBaseTests
 			"alpha",
 			Vector2.Zero,
 			Color.White,
+			characterSpacing: 2,
+			lineSpacing: 4,
 			effect: effect);
 
 		Assert.NotNull(font.LastEffect);
 		Assert.Equal(TextEffect.Shadow, font.LastEffect.Value.Effect);
 		Assert.Equal(3, font.LastEffect.Value.Amount);
 		Assert.Equal(Color.Red, font.LastEffect.Value.Color);
+		Assert.Equal(2f, font.LastCharacterSpacing);
+		Assert.Equal(4f, font.LastLineSpacing);
 
 		font.DrawText((SpriteBatch)null!, "beta", Vector2.Zero, Color.White);
 		Assert.Null(font.LastEffect);
+		Assert.Equal(0f, font.LastCharacterSpacing);
+		Assert.Equal(0f, font.LastLineSpacing);
 	}
 
 	[Fact]
@@ -191,6 +197,10 @@ public sealed class SpriteFontBaseTests
 
 		public TextEffectOptions? LastEffect { get; private set; }
 
+		public float LastCharacterSpacing { get; private set; }
+
+		public float LastLineSpacing { get; private set; }
+
 		public override Vector2 MeasureString(string text)
 		{
 			return new Vector2(10f, LineSpacing);
@@ -216,10 +226,14 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
+			float characterSpacing = 0f,
+			float lineSpacing = 0f,
 			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
 			LastEffect = effect;
+			LastCharacterSpacing = characterSpacing;
+			LastLineSpacing = lineSpacing;
 		}
 
 		public override void DrawText(
@@ -232,6 +246,8 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
+			float characterSpacing = 0f,
+			float lineSpacing = 0f,
 			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
@@ -240,6 +256,8 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
+			LastCharacterSpacing = characterSpacing;
+			LastLineSpacing = lineSpacing;
 		}
 
 		public override void DrawText(
@@ -252,6 +270,8 @@ public sealed class SpriteFontBaseTests
 			Vector2 scale,
 			SpriteEffects effects,
 			float layerDepth,
+			float characterSpacing = 0f,
+			float lineSpacing = 0f,
 			TextEffectOptions? effect = null)
 		{
 			LastDrawnText = text.ToString();
@@ -260,6 +280,8 @@ public sealed class SpriteFontBaseTests
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
+			LastCharacterSpacing = characterSpacing;
+			LastLineSpacing = lineSpacing;
 		}
 	}
 

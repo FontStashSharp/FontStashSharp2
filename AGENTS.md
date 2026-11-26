@@ -132,7 +132,9 @@ clear.
 ### Coordinates and layout
 
 - `position` is the top-left of the text block.
-- The baseline of the first line is `position.Y + Ascent`; each following line adds `LineSpacing`.
+- The baseline of the first line is `position.Y + Ascent`; each following line adds `LineSpacing` plus
+  the optional draw `lineSpacing`. Each glyph advance includes the optional draw `characterSpacing`.
+  Both values are layout pixels and are transformed by the draw scale.
 - StbTrueTypeNext glyph offsets are baseline-relative with Y growing downward (negative above the
   baseline). Do not flip the sign.
 - Advances and kerning are converted from font units with `FontSystemSettings.ScaleMode`.
@@ -183,7 +185,8 @@ clear.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth) and must accept the trailing optional
-  `TextEffectOptions? effect = null`. `TextEffect` has only `Stroke` and `Shadow`; no `None` value.
+  `float characterSpacing = 0f, float lineSpacing = 0f, TextEffectOptions? effect = null`.
+  `TextEffect` has only `Stroke` and `Shadow`; no `None` value.
 - `TextEffectOptions.Amount` must be non-negative; `0` disables effects. Invalid effect kinds throw.
   Effect passes run before the main text pass and use the same atlas glyphs.
 - `TextEffectOptions.Color` defaults to white when omitted.

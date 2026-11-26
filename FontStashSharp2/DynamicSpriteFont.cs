@@ -205,6 +205,69 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		return new Vector2(maxLineWidth, lineCount * LineSpacing);
 	}
 
+	private Vector2 MeasureStringWithSpacing(ReadOnlySpan<char> text, float characterSpacing, float lineSpacing)
+	{
+		if (text.IsEmpty)
+		{
+			return Vector2.Zero;
+		}
+
+		if (characterSpacing == 0 && lineSpacing == 0)
+		{
+			return MeasureString(text);
+		}
+
+		var maxLineWidth = 0f;
+		var lineWidth = 0f;
+		var lineCount = 1;
+		var hasPrevious = false;
+		var previous = default(GlyphMetrics);
+
+		for (var i = 0; i < text.Length;)
+		{
+			var codepoint = ReadCodepoint(text, ref i);
+
+			switch (codepoint)
+			{
+				case '\r':
+					continue;
+				case '\n':
+					if (lineWidth > maxLineWidth)
+					{
+						maxLineWidth = lineWidth;
+					}
+
+					lineWidth = 0f;
+					lineCount++;
+					hasPrevious = false;
+					continue;
+				case '\t':
+					codepoint = ' ';
+					break;
+			}
+
+			var metrics = _glyphCache.GetMetrics(codepoint);
+			if (hasPrevious)
+			{
+				lineWidth += _glyphCache.GetKerning(previous, metrics);
+				lineWidth += characterSpacing;
+			}
+
+			lineWidth += metrics.Advance;
+			if (lineWidth > maxLineWidth)
+			{
+				maxLineWidth = lineWidth;
+			}
+
+			hasPrevious = true;
+			previous = metrics;
+		}
+
+		return new Vector2(
+			maxLineWidth,
+			(lineCount * LineSpacing) + ((lineCount - 1) * lineSpacing));
+	}
+
 #if MONOGAME
 	/// <summary>
 	/// Rasterizes all glyphs in a string into the atlas ahead of time, avoiding a first-draw hitch.
@@ -369,6 +432,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
@@ -391,9 +456,11 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				&& origin == Vector2.Zero
 				&& scale == Vector2.One
 				&& effects == SpriteEffects.None
-				&& layerDepth == 0f)
+				&& layerDepth == 0f
+				&& characterSpacing == 0
+				&& lineSpacing == 0)
 			{
-				DrawTextDefault(spriteBatch, text, position, color);
+				DrawTextDefault(spriteBatch, text, position, color, characterSpacing, lineSpacing);
 				return;
 			}
 
@@ -407,6 +474,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				Vector2.Zero);
 			return;
 		}
@@ -423,6 +492,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				offset);
 		}
 
@@ -436,6 +507,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			scale,
 			effects,
 			layerDepth,
+			characterSpacing,
+			lineSpacing,
 			Vector2.Zero);
 	}
 
@@ -449,6 +522,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
 		Vector2 effectOffset)
 	{
 		var device = spriteBatch.GraphicsDevice;
@@ -456,7 +531,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
-		var blockSize = flipHorizontally || flipVertically ? MeasureString(text) : Vector2.Zero;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
 
 		var lineTop = 0f;
 		var penX = 0f;
@@ -477,7 +554,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				case '\r':
 					continue;
 				case '\n':
-					lineTop += LineSpacing;
+					lineTop += LineSpacing + lineSpacing;
 					penX = 0f;
 					hasPrevious = false;
 					continue;
@@ -551,7 +628,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					layerDepth);
 			}
 
-			penX += glyph.Metrics.Advance;
+			penX += glyph.Metrics.Advance + characterSpacing;
 			hasPrevious = true;
 			previous = glyph.Metrics;
 		}
@@ -570,6 +647,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
@@ -598,6 +677,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				Vector2.Zero);
 			return;
 		}
@@ -614,6 +695,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				offset);
 		}
 
@@ -627,6 +710,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			scale,
 			effects,
 			layerDepth,
+			characterSpacing,
+			lineSpacing,
 			Vector2.Zero);
 	}
 
@@ -640,6 +725,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
 		Vector2 effectOffset)
 	{
 		var device = GetDevice(renderer);
@@ -647,7 +734,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
-		var blockSize = flipHorizontally || flipVertically ? MeasureString(text) : Vector2.Zero;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
 
 		var lineTop = 0f;
 		var penX = 0f;
@@ -668,7 +757,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				case '\r':
 					continue;
 				case '\n':
-					lineTop += LineSpacing;
+					lineTop += LineSpacing + lineSpacing;
 					penX = 0f;
 					hasPrevious = false;
 					continue;
@@ -741,7 +830,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					layerDepth);
 			}
 
-			penX += glyph.Metrics.Advance;
+			penX += glyph.Metrics.Advance + characterSpacing;
 			hasPrevious = true;
 			previous = glyph.Metrics;
 		}
@@ -758,6 +847,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
@@ -786,6 +877,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				Vector2.Zero);
 			return;
 		}
@@ -802,6 +895,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				scale,
 				effects,
 				layerDepth,
+				characterSpacing,
+				lineSpacing,
 				offset);
 		}
 
@@ -815,6 +910,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			scale,
 			effects,
 			layerDepth,
+			characterSpacing,
+			lineSpacing,
 			Vector2.Zero);
 	}
 
@@ -828,6 +925,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing,
+		float lineSpacing,
 		Vector2 effectOffset)
 	{
 		var device = GetDevice(renderer);
@@ -835,7 +934,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 
 		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
 		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
-		var blockSize = flipHorizontally || flipVertically ? MeasureString(text) : Vector2.Zero;
+		var blockSize = flipHorizontally || flipVertically
+			? MeasureStringWithSpacing(text, characterSpacing, lineSpacing)
+			: Vector2.Zero;
 
 		var lineTop = 0f;
 		var penX = 0f;
@@ -858,7 +959,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				case '\r':
 					continue;
 				case '\n':
-					lineTop += LineSpacing;
+					lineTop += LineSpacing + lineSpacing;
 					penX = 0f;
 					hasPrevious = false;
 					continue;
@@ -965,14 +1066,20 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				renderer.DrawQuad(texture!, ref topLeft, ref topRight, ref bottomLeft, ref bottomRight);
 			}
 
-			penX += glyph.Metrics.Advance;
+			penX += glyph.Metrics.Advance + characterSpacing;
 			hasPrevious = true;
 			previous = glyph.Metrics;
 		}
 	}
 
 #if MONOGAME
-	private void DrawTextDefault(SpriteBatch spriteBatch, ReadOnlySpan<char> text, Vector2 position, Color color)
+	private void DrawTextDefault(
+		SpriteBatch spriteBatch,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float characterSpacing,
+		float lineSpacing)
 	{
 		var device = spriteBatch.GraphicsDevice;
 		var atlas = _fontSystem.GetAtlas(device);
@@ -1005,7 +1112,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				case '\r':
 					continue;
 				case '\n':
-					lineTop += LineSpacing;
+					lineTop += LineSpacing + lineSpacing;
 					penX = 0f;
 					hasPrevious = false;
 					continue;
@@ -1054,7 +1161,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				}
 			}
 
-			penX += glyph.Metrics.Advance;
+			penX += glyph.Metrics.Advance + characterSpacing;
 			hasPrevious = true;
 			previous = glyph.Metrics;
 		}

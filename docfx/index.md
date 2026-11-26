@@ -118,6 +118,23 @@ _spriteBatch.DrawString(_font, "Shadowed", new Vector2(40, 180), Color.White,
 The same arguments work with `font.DrawText(renderer, ...)`, `font.DrawText(renderer2, ...)`, and
 `SpriteBatch.DrawString`. See [Text effects](articles/text-effects.md) for the full guide.
 
+### Character and line spacing
+
+Every draw overload also accepts additional spacing, in layout pixels. Both values are scaled with the
+draw scale:
+
+```csharp
+_spriteBatch.DrawString(_font, "Wide text", position, Color.White,
+    characterSpacing: 4);
+
+_spriteBatch.DrawString(_font, "First\nSecond", position, Color.White,
+    lineSpacing: 8);
+```
+
+- `characterSpacing` is added after each glyph advance and scales with the horizontal text scale.
+- `lineSpacing` is added after each line break and scales with the vertical text scale.
+- Both default to 0 and affect drawing only; `MeasureString` continues to use the font's metrics.
+
 ## 5. Measure and align
 
 `MeasureString` returns the width of the widest line and the total height:

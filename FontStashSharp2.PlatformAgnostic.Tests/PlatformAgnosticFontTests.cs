@@ -314,6 +314,92 @@ public sealed class PlatformAgnosticFontTests
 	}
 
 	[Fact]
+	public void CharacterSpacing_OffsetsSubsequentGlyphs()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			0f,
+			Vector2.Zero,
+			new Vector2(3f, 1f),
+			SpriteEffects.None,
+			0f);
+		var baseline = renderer.Calls.ToArray();
+		renderer.Calls.Clear();
+
+		font.DrawText(
+			renderer,
+			"AB",
+			new Vector2(10f, 20f),
+			Color.White,
+			0f,
+			Vector2.Zero,
+			new Vector2(3f, 1f),
+			SpriteEffects.None,
+			0f,
+			characterSpacing: 5f);
+
+		Assert.Equal(baseline.Length, renderer.Calls.Count);
+		Assert.Equal(baseline[0].Position, renderer.Calls[0].Position);
+		Assert.Equal(baseline[1].Position.X + 15f, renderer.Calls[1].Position.X);
+		Assert.Equal(baseline[1].Position.Y, renderer.Calls[1].Position.Y);
+	}
+
+	[Fact]
+	public void LineSpacing_OffsetsSecondLine()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"A\nB",
+			new Vector2(10f, 20f),
+			Color.White,
+			0f,
+			Vector2.Zero,
+			new Vector2(1f, 3f),
+			SpriteEffects.None,
+			0f);
+		var baseline = renderer.Calls.ToArray();
+		renderer.Calls.Clear();
+
+		font.DrawText(
+			renderer,
+			"A\nB",
+			new Vector2(10f, 20f),
+			Color.White,
+			0f,
+			Vector2.Zero,
+			new Vector2(1f, 3f),
+			SpriteEffects.None,
+			0f,
+			lineSpacing: 7f);
+
+		Assert.Equal(baseline.Length, renderer.Calls.Count);
+		Assert.Equal(baseline[0].Position, renderer.Calls[0].Position);
+		Assert.Equal(baseline[1].Position.X, renderer.Calls[1].Position.X);
+		Assert.Equal(baseline[1].Position.Y + 21f, renderer.Calls[1].Position.Y);
+	}
+
+	[Fact]
 	public void TextureAtlasFull_FiresOnlyWhenANewPageIsCreated()
 	{
 		var manager = new FakeTextureManager();

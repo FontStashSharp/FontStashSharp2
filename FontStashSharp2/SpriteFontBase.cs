@@ -69,6 +69,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	/// <remarks>
 	/// This is the low-level rendering hook used by <see cref="SpriteBatchExtensions"/>.
@@ -84,6 +86,8 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null);
 
 	/// <summary>
@@ -93,12 +97,16 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		ReadOnlySpan<char> text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		DrawText(
@@ -111,6 +119,8 @@ public abstract class SpriteFontBase
 			Vector2.One,
 			SpriteEffects.None,
 			0f,
+			characterSpacing,
+			lineSpacing,
 			effect);
 	}
 
@@ -126,6 +136,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
@@ -137,10 +149,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -150,16 +164,20 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		string text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color, effect);
+		DrawText(spriteBatch, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -174,6 +192,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
@@ -185,10 +205,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -198,16 +220,20 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		StringBuilder text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, effect);
+		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 
 #endif
@@ -224,6 +250,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public abstract void DrawText(
 		IFontStashRenderer renderer,
@@ -235,6 +263,8 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null);
 
 	/// <summary>
@@ -244,12 +274,16 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		ReadOnlySpan<char> text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		DrawText(
@@ -262,6 +296,8 @@ public abstract class SpriteFontBase
 			Vector2.One,
 			SpriteEffects.None,
 			0f,
+			characterSpacing,
+			lineSpacing,
 			effect);
 	}
 
@@ -277,6 +313,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
@@ -288,10 +326,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -301,16 +341,20 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		string text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, effect);
+		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -325,6 +369,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
@@ -336,10 +382,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -350,16 +398,20 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		StringBuilder text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -374,6 +426,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public abstract void DrawText(
 		IFontStashRenderer2 renderer,
@@ -385,6 +439,8 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null);
 
 	/// <summary>
@@ -395,12 +451,16 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		ReadOnlySpan<char> text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		DrawText(
@@ -413,6 +473,8 @@ public abstract class SpriteFontBase
 			Vector2.One,
 			SpriteEffects.None,
 			0f,
+			characterSpacing,
+			lineSpacing,
 			effect);
 	}
 
@@ -428,6 +490,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
@@ -439,10 +503,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -452,16 +518,20 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		string text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, effect);
+		DrawText(renderer, text.AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -477,6 +547,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
@@ -488,10 +560,12 @@ public abstract class SpriteFontBase
 		Vector2 scale,
 		SpriteEffects effects,
 		float layerDepth,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, characterSpacing, lineSpacing, effect);
 	}
 
 	/// <summary>
@@ -502,15 +576,19 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="characterSpacing">Additional spacing between characters, in layout pixels, scaled with the text.</param>
+	/// <param name="lineSpacing">Additional spacing between lines, in layout pixels, scaled with the text.</param>
 	/// <param name="effect">The optional stroke or shadow effect; <see langword="null"/> draws normally.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		StringBuilder text,
 		Vector2 position,
 		Color color,
+		float characterSpacing = 0f,
+		float lineSpacing = 0f,
 		TextEffectOptions? effect = null)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.ToString().AsSpan(), position, color, effect);
+		DrawText(renderer, text.ToString().AsSpan(), position, color, characterSpacing, lineSpacing, effect);
 	}
 }
