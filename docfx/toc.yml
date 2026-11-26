@@ -1,14 +1,6 @@
-- name: Introduction
+- name: Docs
   href: articles/introduction.md
-- name: Getting started
-  href: articles/getting-started.md
-- name: Supersampling
-  href: articles/supersampling.md
-- name: Custom renderers
-  href: articles/custom-renderers.md
-- name: Architecture
-  href: articles/architecture.md
-- name: Samples
-  href: articles/samples.md
-- name: API reference
-  href: api/toc.yml
+- name: API
+  href: api/
+- name: GitHub
+  href: https://github.com/FontStashSharp/FontStashSharp2

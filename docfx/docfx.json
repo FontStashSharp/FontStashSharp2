@@ -23,7 +23,8 @@
         "files": [
           "index.md",
           "toc.yml",
-          "articles/**/*.md"
+          "articles/**/*.md",
+          "articles/toc.yml"
         ]
       },
       {
@@ -43,6 +44,7 @@
     "dest": "_site",
     "globalMetadata": {
       "_appTitle": "FontStashSharp2",
+      "_appName": "FontStashSharp2",
       "_appFooter": "FontStashSharp2 - on-demand TrueType text rendering for MonoGame",
       "_disableContribution": true,
       "_disableGitFeatures": true
