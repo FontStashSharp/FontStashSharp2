@@ -47,9 +47,9 @@ The `font` parameter is `SpriteFontBase` (usually a `DynamicSpriteFont` from
 
 ### Measurement anywhere
 
-A `FontSystem` is device-agnostic. Parsing, fallback, measurement, and line layout work on a
-background thread before any atlas exists. The first draw or preload binds the atlas to the
-`GraphicsDevice` supplied by the `SpriteBatch` or renderer; use one `FontSystem` per device.
+Parsing, fallback, measurement, and line layout work on a background thread before any atlas exists.
+The first draw or preload creates the atlas from the `SpriteBatch` or renderer; use one `FontSystem`
+per device.
 
 ## Feature summary
 

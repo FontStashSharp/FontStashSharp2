@@ -23,9 +23,8 @@ FontSystem ── owns ──> FontSource[] (fallback order)
                               └── Dictionary<kerning pair, float>
 ```
 
-A `FontSystem` is device-agnostic at construction. The first draw or preload supplies a
-`GraphicsDevice` from `SpriteBatch`, `IFontStashRenderer`, or `IFontStashRenderer2`; the atlas is bound
-to that device. Use one `FontSystem` per device.
+The atlas is created on the first draw or preload from the `SpriteBatch`, `IFontStashRenderer`, or
+`IFontStashRenderer2` device. Use one `FontSystem` per device.
 
 ## Loading
 
@@ -58,7 +57,7 @@ GlyphCache.GetRenderedGlyph(codepoint)
 ```
 
 `MeasureString` stops at `GetMetrics`; it never calls `CreateGlyphBitmap` or the atlas. This is what
-makes measurement device-agnostic and keeps `GlyphCount` at zero until drawing.
+makes measurement possible before an atlas exists and keeps `GlyphCount` at zero until drawing.
 
 ## Text layout
 

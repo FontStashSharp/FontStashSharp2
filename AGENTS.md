@@ -77,12 +77,10 @@ Measurement must never rasterize or upload a glyph. `DynamicSpriteFont.MeasureSt
 touch `IGlyphAtlas`. `DynamicSpriteFont.GlyphCount` counts atlas glyphs and must stay 0 after
 measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 
-`FontSystem` is device-agnostic: its constructor does not take a `GraphicsDevice`. The first draw or
-preload calls `GetAtlas(device)` using the device from `SpriteBatch`, `IFontStashRenderer`, or
-`IFontStashRenderer2`. Neither `FontSystem` nor `TextureAtlas` stores a separate device field: the
-device is passed into each upload, and compatibility is checked against existing page textures'
-`GraphicsDevice`. A different device must use a separate `FontSystem`. Public `PreloadGlyphs` overloads
-therefore require a batch/renderer/device; tests use the internal fake-atlas overload.
+The atlas is created on the first draw or preload from the `SpriteBatch`, `IFontStashRenderer`, or
+`IFontStashRenderer2` device. A different device must use a separate `FontSystem`. Public
+`PreloadGlyphs` overloads therefore require a batch/renderer/device; tests use the internal fake-atlas
+overload.
 
 ### Coordinates and layout
 

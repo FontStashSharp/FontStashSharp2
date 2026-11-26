@@ -194,8 +194,8 @@ and the dedicated `Samples/Supersampling` comparison.
 
 ## Measurement without a graphics device
 
-A `FontSystem` is device-agnostic. `MeasureString` only needs parsed metrics, so it works on a
-background thread or a server before any atlas exists:
+`MeasureString` only needs parsed metrics, so it works on a background thread or a server before any
+atlas exists:
 
 ```csharp
 using var fonts = new FontSystem();

@@ -26,8 +26,7 @@ There is no content pipeline step. Copy the font next to the executable:
 
 ## 3. Create a font system and load a font
 
-Create the `FontSystem` anywhere; it does not take a `GraphicsDevice`. The atlas is created from the
-first `SpriteBatch`/renderer device when text is drawn or preloaded:
+Create a `FontSystem` and add fonts:
 
 ```csharp
 using FontStashSharp2;
@@ -156,7 +155,7 @@ atlas. `FontSystem.GetTexture(index)` exposes atlas pages for debugging (do not 
 
 ## 9. Measurement and device binding
 
-A `FontSystem` is device-agnostic, so measurement works immediately without any GPU resources:
+Measurement works before any GPU resources are created:
 
 ```csharp
 using var fonts = new FontSystem();
@@ -165,8 +164,8 @@ var font = fonts.GetFont(24f);
 Vector2 size = font.MeasureString("Measured without a GPU");
 ```
 
-The first draw or preload supplies a `GraphicsDevice` from the `SpriteBatch` or renderer and the atlas
-is created then. One `FontSystem` is bound to one device; create a separate system per device.
+The atlas is created from the active `SpriteBatch` or renderer on the first draw or preload. Use one
+`FontSystem` per device.
 
 ## 10. Dispose
 
