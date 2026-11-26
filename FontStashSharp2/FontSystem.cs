@@ -87,6 +87,8 @@ public sealed class FontSystem : IDisposable
 
 	internal float SupersamplingFactor => _settings.SupersamplingFactor;
 
+	internal FontScaleMode ScaleMode => _settings.ScaleMode;
+
 	internal long AtlasGeneration => _atlasGeneration;
 
 	internal IGlyphAtlas GetAtlas(AtlasDevice device)
@@ -164,7 +166,7 @@ public sealed class FontSystem : IDisposable
 	/// Gets a font of a given size in pixels. Sizes are cached: repeated calls with the same size
 	/// return the same instance and share its glyph cache.
 	/// </summary>
-	/// <param name="size">The font size in pixels (the em size). Must be positive and finite.</param>
+	/// <param name="size">The font size in pixels. Must be positive and finite.</param>
 	public DynamicSpriteFont GetFont(float size)
 	{
 		ThrowIfDisposed();

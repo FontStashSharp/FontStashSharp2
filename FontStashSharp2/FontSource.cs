@@ -104,9 +104,11 @@ public sealed class FontSource
 		return _font.FindGlyphIndex(codepoint) != 0;
 	}
 
-	internal float GetScale(float fontSize)
+	internal float GetScale(float fontSize, FontScaleMode scaleMode)
 	{
-		return _font.ScaleForMappingEmToPixels(fontSize);
+		return scaleMode == FontScaleMode.ScaleForPixelHeight
+			? _font.ScaleForPixelHeight(fontSize)
+			: _font.ScaleForMappingEmToPixels(fontSize);
 	}
 
 	internal int GetAdvanceWidth(int glyphIndex)

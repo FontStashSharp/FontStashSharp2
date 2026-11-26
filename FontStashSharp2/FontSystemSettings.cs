@@ -15,6 +15,7 @@ public sealed class FontSystemSettings
 	private int _maxTextureCount = 8;
 	private int _glyphPadding = 1;
 	private float _supersamplingFactor = 2f;
+	private FontScaleMode _scaleMode = FontScaleMode.ScaleForPixelHeight;
 	private GlyphAlphaMode _alphaMode = GlyphAlphaMode.Premultiplied;
 
 	/// <summary>
@@ -121,6 +122,25 @@ public sealed class FontSystemSettings
 	}
 
 	/// <summary>
+	/// Gets or sets how font units are converted to pixels. Defaults to
+	/// <see cref="FontScaleMode.ScaleForPixelHeight"/>.
+	/// </summary>
+	/// <remarks>
+	/// <see cref="FontScaleMode.ScaleForPixelHeight"/> makes the font's ascent-to-descent height equal
+	/// to <see cref="DynamicSpriteFont.FontSize"/>. <see cref="FontScaleMode.ScaleForMappingEmToPixels"/>
+	/// makes the em square equal to the font size instead.
+	/// </remarks>
+	public FontScaleMode ScaleMode
+	{
+		get => _scaleMode;
+		set
+		{
+			ValidateScaleMode(value);
+			_scaleMode = value;
+		}
+	}
+
+	/// <summary>
 	/// Gets or sets whether kerning pairs from the font are applied. Defaults to <see langword="true"/>.
 	/// </summary>
 	public bool UseKerning { get; set; } = true;
@@ -156,6 +176,7 @@ public sealed class FontSystemSettings
 			GlyphPadding = _glyphPadding,
 			SupersamplingFactor = _supersamplingFactor,
 			UseKerning = UseKerning,
+			ScaleMode = _scaleMode,
 			AlphaMode = _alphaMode,
 		};
 	}
@@ -190,7 +211,20 @@ public sealed class FontSystemSettings
 				"Supersampling factor must be finite and at least 1.0.");
 		}
 
+		ValidateScaleMode(_scaleMode);
 		ValidateAlphaMode(_alphaMode);
+	}
+
+	private static void ValidateScaleMode(FontScaleMode value)
+	{
+		if (value is not (FontScaleMode.ScaleForPixelHeight
+			or FontScaleMode.ScaleForMappingEmToPixels))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(ScaleMode),
+				value,
+				"ScaleMode must be ScaleForPixelHeight or ScaleForMappingEmToPixels.");
+		}
 	}
 
 	private static void ValidateAlphaMode(GlyphAlphaMode value)

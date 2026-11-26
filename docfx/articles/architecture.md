@@ -73,7 +73,9 @@ For each code point:
 4. Place the glyph bitmap at `pen + (bitmap.XOffset / SupersamplingFactor)`, and
    `baseline + (bitmap.YOffset / SupersamplingFactor)`.
 
-Font units are converted with `ScaleForMappingEmToPixels(FontSize)`, so `FontSize` is an em size.
+Font units are converted with `ScaleForPixelHeight(FontSize)` by default, so `FontSize` is the
+ascent-to-descent pixel height. Set `FontSystemSettings.ScaleMode` to
+`FontScaleMode.ScaleForMappingEmToPixels` to map the em square instead.
 Vertical metrics give `Ascent`, `Descent` (negative), and `LineGap`; the default line spacing is
 `Ascent - Descent + LineGap`.
 

@@ -147,7 +147,29 @@ public sealed class MeasurementTests
 
 		Assert.Equal(font.Ascent - font.Descent + font.LineGap, font.LineSpacing, 3);
 		Assert.True(font.Descent < 0f);
-		Assert.True(font.LineSpacing > font.FontSize);
+		Assert.True(font.LineSpacing >= font.FontSize - 0.01f);
+	}
+
+	[Fact]
+	public void ScaleMode_ChangesVerticalMetrics()
+	{
+		using var pixelSystem = TestFonts.CreateFontSystem(new FontSystemSettings
+		{
+			ScaleMode = FontScaleMode.ScaleForPixelHeight,
+		});
+		pixelSystem.AddFont(TestFonts.Data);
+
+		using var emSystem = TestFonts.CreateFontSystem(new FontSystemSettings
+		{
+			ScaleMode = FontScaleMode.ScaleForMappingEmToPixels,
+		});
+		emSystem.AddFont(TestFonts.Data);
+
+		var pixelFont = pixelSystem.GetFont(32f);
+		var emFont = emSystem.GetFont(32f);
+
+		Assert.True(pixelFont.LineSpacing >= 32f - 0.01f);
+		Assert.True(Math.Abs(pixelFont.Ascent - emFont.Ascent) > 0.01f);
 	}
 
 	[Fact]

@@ -223,6 +223,7 @@ protected override void UnloadContent()
 | --- | --- | --- |
 | `TextureWidth` | 1024 | Width of each atlas page. |
 | `TextureHeight` | 1024 | Height of each atlas page. |
+| `ScaleMode` | `ScaleForPixelHeight` | Map font units by pixel height or by em square. |
 | `MaxTextureCount` | 8 | Maximum number of pages before adding a glyph throws. |
 | `GlyphPadding` | 1 | Transparent/extruded border around each glyph. |
 | `SupersamplingFactor` | 2 | Glyphs rasterize at `FontSize * factor`; atlas memory grows ~factor². |
@@ -234,7 +235,9 @@ afterwards.
 
 ## Behavior details
 
-- `FontSize` is the em size in pixels.
+- `FontSize` is measured in pixels. By default it maps the font's ascent-to-descent height
+  (`FontScaleMode.ScaleForPixelHeight`); set `ScaleMode = FontScaleMode.ScaleForMappingEmToPixels`
+  to map the em square instead.
 - `\n` and `\r\n` break lines. Tab advances by one space.
 - `SpriteEffects.FlipHorizontally` / `FlipVertically` mirror the whole text block.
 - Glyphs are rasterized at `FontSize * SupersamplingFactor` (default 2×) and drawn at the inverse

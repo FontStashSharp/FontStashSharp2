@@ -38,7 +38,7 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		var scales = new float[sources.Length];
 		for (var i = 0; i < sources.Length; i++)
 		{
-			scales[i] = sources[i].GetScale(size);
+			scales[i] = sources[i].GetScale(size, fontSystem.ScaleMode);
 		}
 
 		var primaryScale = scales[0];
@@ -58,7 +58,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 	}
 
 	/// <summary>
-	/// Gets the font size in pixels (the em size).
+	/// Gets the font size in pixels. The mapping to font units depends on
+	/// <see cref="FontSystemSettings.ScaleMode"/>.
 	/// </summary>
 	public override float FontSize { get; }
 

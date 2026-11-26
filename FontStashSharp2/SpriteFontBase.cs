@@ -29,7 +29,7 @@ namespace FontStashSharp2;
 public abstract class SpriteFontBase
 {
 	/// <summary>
-	/// Gets the font size in pixels (the em size).
+	/// Gets the font size in pixels.
 	/// </summary>
 	public abstract float FontSize { get; }
 

@@ -135,8 +135,8 @@ clear.
 - The baseline of the first line is `position.Y + Ascent`; each following line adds `LineSpacing`.
 - StbTrueTypeNext glyph offsets are baseline-relative with Y growing downward (negative above the
   baseline). Do not flip the sign.
-- Advances and kerning are converted from font units with
-  `ScaleForMappingEmToPixels(FontSize)` (em sizing), not `ScaleForPixelHeight`.
+- Advances and kerning are converted from font units with `FontSystemSettings.ScaleMode`.
+  `ScaleForPixelHeight` is the default; `ScaleForMappingEmToPixels` opts into em sizing.
 - Glyph bitmaps are rasterized at `fontScale * SupersamplingFactor`. Bitmap offsets are divided by
   the factor before layout so advances, ascent, and line spacing stay nominal. Atlas source rectangles
   remain physical; draws use `requestedScale / SupersamplingFactor`.
@@ -227,7 +227,8 @@ When adding behavior, add tests for:
 `Samples/Benchmark` is the source of truth for DrawString performance claims.
 
 - Compare the same TTF, pixel size, text, and pre-baked atlas for both engines. The benchmark uses
-  `SupersamplingFactor = 1` so SpriteFont and FontStashSharp2 both draw 1:1 atlases.
+  `SupersamplingFactor = 1` so SpriteFont and FontStashSharp2 both draw 1:1 atlases, and
+  `ScaleMode = ScaleForMappingEmToPixels` to match the runtime SpriteFont's em scaling.
 - Exclude first-use glyph rasterization, JIT, and batch growth from measured phases via warmup.
 - Alternate mode order between rounds and report CPU submission (small clipped target) separately
   from full rendering (1280×720) so GPU fill does not hide CPU regressions.

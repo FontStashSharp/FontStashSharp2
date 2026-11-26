@@ -80,6 +80,8 @@ internal sealed class BenchmarkGame : Game
 				TextureHeight = 1024,
 				GlyphPadding = 1,
 				SupersamplingFactor = 1f,
+				// Match the runtime SpriteFont, which uses em-to-pixel scaling.
+				ScaleMode = FontScaleMode.ScaleForMappingEmToPixels,
 				UseKerning = !_options.DisableKerning,
 			});
 
