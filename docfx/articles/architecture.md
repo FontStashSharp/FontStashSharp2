@@ -96,6 +96,15 @@ Horizontal/vertical flips mirror the whole block around `MeasureString`'s size b
 The flip math uses logical glyph size (`source width / SupersamplingFactor`). `SpriteEffects` is
 passed to `SpriteBatch.Draw` so each glyph's texture is flipped to match.
 
+## Custom renderers
+
+`DrawText` overloads that accept `IFontStashRenderer` use the same layout and transform pipeline, but
+submit each glyph through `renderer.Draw` instead of `SpriteBatch.Draw`. The interface includes sprite
+effects and layer depth, and receives already-transformed positions with an implicit origin of zero.
+The CustomRenderer sample implements the interface with a `SpriteBatch` adapter for all of its text,
+including rotated, scaled, and flipped lines, so that path runs in the visual integration check. See
+[Custom renderers](custom-renderers.md) for the interface contract and a complete example.
+
 ## Atlas details
 
 - **Packing.** A shelf packer places glyphs left to right, starting a new row when the current row is

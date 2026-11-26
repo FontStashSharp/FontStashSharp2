@@ -22,9 +22,11 @@ dotnet run --project Samples/MeasureText
 dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
 dotnet run --project Samples/Supersampling
+dotnet run --project Samples/CustomRenderer
 dotnet run --project Samples/HelloWorld -- --screenshot out.png
 dotnet run --project Samples/Benchmark -- --screenshot benchmark.png
 dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
+dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
 ```
 
 Documentation:
@@ -42,8 +44,9 @@ The screenshot mode is also a useful end-to-end smoke test on a machine with a g
 FontStashSharp2/
   FontSystem.cs             owns sources, cached fonts, atlas; AddFont/GetFont/GetTexture
   FontSource.cs             wrapper around StbTrueTypeNext STBFont + name/metrics
+  IFontStashRenderer.cs     renderer abstraction for drawing without SpriteBatch
   DynamicSpriteFont.cs      per-size metadata, MeasureString, PreloadGlyphs, DrawText
-  SpriteFontBase.cs         public base type + internal drawing hook
+  SpriteFontBase.cs         public base type + drawing hooks and convenience overloads
   SpriteBatchExtensions.cs  SpriteFont-compatible DrawString overloads
   FontSystemSettings.cs     atlas/raster settings (cloned on construction)
   Internal/
@@ -56,6 +59,7 @@ FontStashSharp2.Tests/      xUnit tests; Fonts/ABeeZee-Regular.ttf is the fixtur
 Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
+Samples/CustomRenderer/     IFontStashRenderer sample with drop shadow
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
 docfx/                      docfx.json, articles, API reference, screenshots
 ```
@@ -114,9 +118,13 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth).
-- `SpriteFontBase` is the font parameter type. Its public abstract span-based `DrawText` is the
-  rendering hook; `string`/`StringBuilder` overloads, plus position/color conveniences, delegate to
-  it. Custom fonts can derive the type and implement the span hook. The extension methods call it.
+- `SpriteFontBase` is the font parameter type. Its public abstract span-based `DrawText` hooks accept
+  either a `SpriteBatch` or an `IFontStashRenderer`; `string`/`StringBuilder` and position/color
+  overloads delegate to them. Custom fonts derive the type and implement both span hooks. The
+  extension methods call the SpriteBatch hook.
+- `IFontStashRenderer.Draw` receives pre-transformed glyph positions (origin zero) and includes
+  `SpriteEffects` so flips are representable. Do not remove the effects parameter; the generic draw
+  path relies on it.
 - Fonts are cached per exact float size by `FontSystem.GetFont`; repeated calls return the same
   instance and glyph cache.
 - `AddFont` clears future font instances (new fallback chain). Existing fonts keep their snapshot.
@@ -127,8 +135,9 @@ measurement. Tests in `MeasurementTests`/`GlyphCacheTests` enforce this.
 Tests use a fake `IGlyphAtlas` so caching/rasterization can be tested without a GPU. Prefer this seam
 over spinning up MonoGame in unit tests. `Samples/HelloWorld --screenshot` is the visual integration
 check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen;
-`Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison. Keep tests deterministic; do
-not depend on system fonts.
+`Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison;
+`Samples/CustomRenderer --screenshot` verifies the custom renderer overloads end-to-end. Keep tests
+deterministic; do not depend on system fonts.
 
 When adding behavior, add tests for:
 
@@ -161,8 +170,8 @@ When adding behavior, add tests for:
 ## Docs
 
 Public API XML documentation is required (`GenerateDocumentationFile` is on). Keep `README.md`,
-`docfx/articles/*.md` (including `supersampling.md`), and `AGENTS.md` in sync when behavior or public
-API changes. Regenerate API
+`docfx/articles/*.md` (including `supersampling.md` and `custom-renderers.md`), and `AGENTS.md` in
+sync when behavior or public API changes. Regenerate API
 docs with docfx; `docfx/api/` and `docfx/_site/` are generated and git-ignored.
 
 ## Style

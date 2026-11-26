@@ -4,6 +4,8 @@
   href: articles/getting-started.md
 - name: Supersampling
   href: articles/supersampling.md
+- name: Custom renderers
+  href: articles/custom-renderers.md
 - name: Architecture
   href: articles/architecture.md
 - name: Samples

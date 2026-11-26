@@ -1,7 +1,7 @@
 # Samples
 
-The repository contains four samples. The windowed samples also support screenshot modes that double as
-integration tests.
+The repository contains five samples. The windowed samples also support screenshot modes that double
+as integration tests.
 
 ## HelloWorld (DesktopGL)
 
@@ -53,6 +53,24 @@ dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
 The 1× row shows magnification blur at 3× display scale. The 4× row stays sharp at 3× because it is
 still being downsampled. The 2× row is the default tradeoff. See the
 [Supersampling article](supersampling.md) for the full explanation.
+
+## Custom renderer (DesktopGL)
+
+A dedicated `IFontStashRenderer` sample. Every line, including the chrome, is drawn through
+`font.DrawText(renderer, ...)`, not the `SpriteBatch` extension methods. The custom renderer wraps
+`SpriteBatch` and draws each glyph twice to add a drop shadow.
+
+![Custom renderer sample](../images/custom-renderer.png)
+
+```bash
+dotnet run --project Samples/CustomRenderer
+dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
+```
+
+The sample exercises the `string`, `StringBuilder`, `ReadOnlySpan<char>`, full transform (rotation,
+scale, origin), and `SpriteEffects` overloads. The footer shows how many `IFontStashRenderer.Draw` calls
+the previous frame produced. See [Custom renderers](custom-renderers.md) for the interface contract and
+the renderer implementation guide.
 
 ## MeasureText (console)
 

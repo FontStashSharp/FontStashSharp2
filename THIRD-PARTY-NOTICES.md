@@ -8,6 +8,7 @@ The repository includes `ABeeZee-Regular.ttf` for tests and samples:
 - `Samples/HelloWorld/Content/ABeeZee-Regular.ttf`
 - `Samples/MeasureText/Content/ABeeZee-Regular.ttf`
 - `Samples/Supersampling/Content/ABeeZee-Regular.ttf`
+- `Samples/CustomRenderer/Content/ABeeZee-Regular.ttf`
 - `Samples/Benchmark/Content/ABeeZee-Regular.ttf`
 
 Copyright 2011 The ABeeZee Project Authors (https://github.com/googlefonts/abeezee),

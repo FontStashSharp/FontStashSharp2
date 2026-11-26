@@ -94,6 +94,42 @@ spriteBatch.DrawString(font, text, position, color, rotation, origin, new Vector
 
 `StringBuilder` overloads are available as well.
 
+### Custom renderers
+
+Drawing is not limited to `SpriteBatch`. Implement `IFontStashRenderer` and use the matching
+`DrawText` overloads:
+
+```csharp
+public sealed class MyRenderer : IFontStashRenderer
+{
+    public MyRenderer(GraphicsDevice device) => GraphicsDevice = device;
+
+    public GraphicsDevice GraphicsDevice { get; }
+
+    public void Draw(
+        Texture2D texture,
+        Vector2 position,
+        Rectangle? sourceRectangle,
+        Color color,
+        float rotation,
+        Vector2 scale,
+        SpriteEffects effects,
+        float layerDepth)
+    {
+        // Submit this glyph quad to your renderer.
+    }
+}
+
+font.DrawText(renderer, "Hello", position, color);
+```
+
+The font pre-transforms glyph positions, so the renderer receives the top-left of each glyph quad and
+rotates/scales around that point (origin zero). `SpriteEffects` is included so flips work without a
+second source-rectangle convention. `Samples/CustomRenderer` uses a `SpriteBatch`-backed
+implementation of this interface for all of its demo text. See the
+[custom renderer article](docfx/articles/custom-renderers.md) for a complete adapter and implementation
+guidance.
+
 ## Benchmarking against SpriteFont
 
 `Samples/Benchmark` runs the same TTF at the same pixel size through both FontStashSharp2 and a
@@ -193,6 +229,8 @@ dotnet run --project Samples/MeasureText
 dotnet run --project Samples/MeasureText -- 48 "Custom text"
 dotnet run --project Samples/Supersampling
 dotnet run --project Samples/Supersampling -- --screenshot supersampling.png
+dotnet run --project Samples/CustomRenderer
+dotnet run --project Samples/CustomRenderer -- --screenshot custom-renderer.png
 dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
 ```
@@ -218,6 +256,7 @@ FontStashSharp2.Tests/     xUnit tests and test font (ABeeZee)
 Samples/HelloWorld/        DesktopGL SpriteBatch sample (supports --screenshot)
 Samples/MeasureText/       Console measurement sample (no graphics device)
 Samples/Supersampling/     1x/2x/4x atlas comparison at multiple draw scales
+Samples/CustomRenderer/    IFontStashRenderer sample with drop shadow
 Samples/Benchmark/         DrawString benchmark vs runtime-baked SpriteFont
 docfx/                     docfx configuration and articles
 ```

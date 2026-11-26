@@ -372,6 +372,125 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
+	/// <inheritdoc />
+	public override void DrawText(
+		IFontStashRenderer renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth)
+	{
+		ArgumentNullException.ThrowIfNull(renderer);
+
+		if (text.IsEmpty)
+		{
+			return;
+		}
+
+		var atlas = _fontSystem.GetAtlasOrThrow();
+
+		var flipHorizontally = (effects & SpriteEffects.FlipHorizontally) != 0;
+		var flipVertically = (effects & SpriteEffects.FlipVertically) != 0;
+		var blockSize = flipHorizontally || flipVertically ? MeasureString(text) : Vector2.Zero;
+
+		var lineTop = 0f;
+		var penX = 0f;
+		var hasPrevious = false;
+		var previous = default(GlyphMetrics);
+		Texture2D? texture = null;
+		var textureIndex = -1;
+		var drawScale = new Vector2(
+			scale.X * _inverseSupersamplingFactor,
+			scale.Y * _inverseSupersamplingFactor);
+
+		for (var i = 0; i < text.Length;)
+		{
+			var codepoint = ReadCodepoint(text, ref i);
+
+			switch (codepoint)
+			{
+				case '\r':
+					continue;
+				case '\n':
+					lineTop += LineSpacing;
+					penX = 0f;
+					hasPrevious = false;
+					continue;
+				case '\t':
+					codepoint = ' ';
+					break;
+			}
+
+			var glyph = _glyphCache.TryGetRenderedGlyph(codepoint, out var cachedGlyph)
+				? cachedGlyph
+				: _glyphCache.GetRenderedGlyph(codepoint, atlas);
+
+			if (hasPrevious)
+			{
+				penX += _glyphCache.GetKerning(previous, glyph.Metrics);
+			}
+
+			if (glyph.HasTexture)
+			{
+				var glyphX = penX + glyph.OffsetX;
+				var glyphY = lineTop + Ascent + glyph.OffsetY;
+				var glyphWidth = glyph.SourceRectangle.Width * _inverseSupersamplingFactor;
+				var glyphHeight = glyph.SourceRectangle.Height * _inverseSupersamplingFactor;
+
+				if (flipHorizontally)
+				{
+					glyphX = blockSize.X - glyphX - glyphWidth;
+				}
+
+				if (flipVertically)
+				{
+					glyphY = blockSize.Y - glyphY - glyphHeight;
+				}
+
+				if (glyph.TextureIndex != textureIndex)
+				{
+					texture = _fontSystem.GetTextureOrThrow(glyph.TextureIndex);
+					textureIndex = glyph.TextureIndex;
+				}
+
+				var localX = (glyphX - origin.X) * scale.X;
+				var localY = (glyphY - origin.Y) * scale.Y;
+
+				Vector2 screenPosition;
+				if (rotation == 0f)
+				{
+					screenPosition = new Vector2(position.X + localX, position.Y + localY);
+				}
+				else
+				{
+					var cos = MathF.Cos(rotation);
+					var sin = MathF.Sin(rotation);
+					screenPosition = new Vector2(
+						position.X + (localX * cos) - (localY * sin),
+						position.Y + (localX * sin) + (localY * cos));
+				}
+
+				renderer.Draw(
+					texture!,
+					screenPosition,
+					glyph.SourceRectangle,
+					color,
+					rotation,
+					drawScale,
+					effects,
+					layerDepth);
+			}
+
+			penX += glyph.Metrics.Advance;
+			hasPrevious = true;
+			previous = glyph.Metrics;
+		}
+	}
+
 	private void DrawTextDefault(SpriteBatch spriteBatch, ReadOnlySpan<char> text, Vector2 position, Color color)
 	{
 		var atlas = _fontSystem.GetAtlasOrThrow();
