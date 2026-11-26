@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/ci.yml"
+      - "Directory.Build.props"
+      - "FontStashSharp2.MonoGame.sln"
+      - "FontStashSharp2/**"
+      - "FontStashSharp2.Tests/**"
+      - "Samples/**"
+  pull_request:
+    paths:
+      - ".github/workflows/ci.yml"
+      - "Directory.Build.props"
+      - "FontStashSharp2.MonoGame.sln"
+      - "FontStashSharp2/**"
+      - "FontStashSharp2.Tests/**"
+      - "Samples/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_CLI_TELEMETRY_OPTOUT: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Restore
+        run: dotnet restore FontStashSharp2.MonoGame.sln
+
+      - name: Build
+        run: dotnet build FontStashSharp2.MonoGame.sln --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test FontStashSharp2.Tests/FontStashSharp2.Tests.csproj --configuration Release --no-build --no-restore

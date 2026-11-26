@@ -22,6 +22,10 @@ support.
 - **Sharper scaling.** Glyphs are supersampled 2× by default and drawn at the inverse scale, with a
   configurable factor for heavier zoom.
 
+## Documentation
+
+https://fontstashsharp.github.io/FontStashSharp2
+
 ## License
 
 FontStashSharp2 is MIT licensed. The sample/test font **ABeeZee** is licensed under the SIL Open Font
