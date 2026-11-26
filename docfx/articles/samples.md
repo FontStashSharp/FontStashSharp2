@@ -1,6 +1,6 @@
 # Samples
 
-The repository contains seven samples. The MonoGame windowed samples also support screenshot modes that
+The repository contains eight samples. The MonoGame windowed samples also support screenshot modes that
 double as integration tests; the platform-agnostic samples accept `--frames <n>` for bounded smoke
 tests.
 
@@ -77,6 +77,25 @@ scale, origin), and `SpriteEffects` overloads on both interfaces. The footer sho
 vertex-quad counts from the previous frame. See [Custom renderers](custom-renderers.md) for both
 interface contracts and the renderer implementation guide.
 
+## Text effects (DesktopGL)
+
+A dedicated `SpriteBatch` sample for the optional draw effect arguments:
+
+- `TextEffect.None`, `TextEffect.Stroke`, and `TextEffect.Shadow`;
+- different `effectAmount` values;
+- effects combined with rotation, scaling, and horizontal flipping;
+- every line goes through `SpriteBatch.DrawString`, so it exercises the MonoGame draw path.
+
+![Text effects sample](../images/text-effects.png)
+
+```bash
+dotnet run --project Samples/TextEffects
+dotnet run --project Samples/TextEffects -- --screenshot text-effects.png
+```
+
+Press `Esc` to exit. See [Text effects](../index.md#text-effects) in the Getting Started guide for the
+API.
+
 ## OpenTK (platform-agnostic)
 
 A minimal OpenGL 3.3 text renderer built on `FontStashSharp2.PlatformAgnostic` and OpenTK:
@@ -84,6 +103,7 @@ A minimal OpenGL 3.3 text renderer built on `FontStashSharp2.PlatformAgnostic` a
 - implements `ITexture2DManager` with OpenGL textures (`TexImage2D`/`TexSubImage2D`);
 - implements `IFontStashRenderer` with a shader, a unit-quad VBO, and one draw per glyph;
 - loads the TTF at runtime, draws rotated/scaled text and `SpriteEffects` flips;
+- demonstrates `TextEffect.Stroke` and `TextEffect.Shadow`;
 - sets `AlphaMode = GlyphAlphaMode.NonPremultiplied` and uses standard
   `SrcAlpha`/`OneMinusSrcAlpha` blending.
 

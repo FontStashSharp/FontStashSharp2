@@ -1,5 +1,8 @@
 # Custom renderers
 
+Text effects are submitted as extra glyph passes through the same renderer; no renderer changes are
+needed. `TextEffect.None` is the only path that uses the optimized SpriteBatch fast path.
+
 FontStashSharp2 can draw through an arbitrary renderer, not only `SpriteBatch`. The
 `IFontStashRenderer` interface receives one glyph quad at a time, with the font's layout, kerning,
 supersampling, rotation, scaling, and flip math already applied.

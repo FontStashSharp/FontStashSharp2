@@ -163,6 +163,21 @@ internal sealed class SilkSample : IDisposable
 			SpriteEffects.FlipHorizontally,
 			0f);
 
+		body.DrawText(
+			renderer,
+			"Stroke effect",
+			new Vector2(64f, 500f),
+			Accent,
+			effect: TextEffect.Stroke,
+			effectAmount: 1);
+		body.DrawText(
+			renderer,
+			"Shadow effect",
+			new Vector2(64f, 560f),
+			Warm,
+			effect: TextEffect.Shadow,
+			effectAmount: 4);
+
 		small.DrawText(
 			renderer,
 			"Resize the window. Close it to exit. --frames <n> runs a bounded smoke test.",

@@ -96,6 +96,27 @@ spriteBatch.DrawString(
 `origin` is measured in text layout pixels (for example `font.MeasureString(text) / 2f` to rotate
 around the center). `StringBuilder` overloads and a `Vector2` scale overload are available.
 
+### Text effects
+
+Every draw overload accepts optional `TextEffect` and `effectAmount` arguments:
+
+```csharp
+_spriteBatch.DrawString(_font, "Stroked", new Vector2(40, 120), Color.White,
+    effect: TextEffect.Stroke, effectAmount: 2);
+
+_spriteBatch.DrawString(_font, "Shadowed", new Vector2(40, 180), Color.White,
+    effect: TextEffect.Shadow, effectAmount: 3);
+```
+
+- `Stroke` draws the text at surrounding offsets before the main text, creating an outline.
+- `Shadow` draws a semi-transparent shadow offset down and right before the main text.
+- `effectAmount` is the thickness/offset in layout pixels; `0` disables the effect.
+- Effects use the text color; shadows use a darkened, half-alpha copy. Negative amounts and undefined
+  effects throw.
+
+The same arguments work with `font.DrawText(renderer, ...)`, `font.DrawText(renderer2, ...)`, and
+`SpriteBatch.DrawString`.
+
 ## 5. Measure and align
 
 `MeasureString` returns the width of the widest line and the total height:

@@ -69,8 +69,10 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	/// <remarks>
-	/// This is the low-level rendering hook used by <see cref="SpriteBatchExtensions.DrawString(SpriteBatch, SpriteFontBase, string, Vector2, Color)"/>.
+	/// This is the low-level rendering hook used by <see cref="SpriteBatchExtensions"/>.
 	/// Custom fonts derive <see cref="SpriteFontBase"/> and implement this method.
 	/// </remarks>
 	public abstract void DrawText(
@@ -82,7 +84,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth);
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1);
 
 	/// <summary>
 	/// Draws a span of characters at a position with no rotation or scaling.
@@ -91,11 +95,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		ReadOnlySpan<char> text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		DrawText(
 			spriteBatch,
@@ -106,7 +114,9 @@ public abstract class SpriteFontBase
 			Vector2.Zero,
 			Vector2.One,
 			SpriteEffects.None,
-			0f);
+			0f,
+			effect,
+			effectAmount);
 	}
 
 	/// <summary>
@@ -121,6 +131,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		string text,
@@ -130,10 +142,12 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
+		DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -143,14 +157,18 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		string text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(spriteBatch, text.AsSpan(), position, color);
+		DrawText(spriteBatch, text.AsSpan(), position, color, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -165,6 +183,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to <c>SpriteBatch.Draw</c>.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		StringBuilder text,
@@ -174,7 +194,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
@@ -187,11 +209,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		SpriteBatch spriteBatch,
 		StringBuilder text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(spriteBatch, text.ToString().AsSpan(), position, color);
@@ -211,6 +237,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public abstract void DrawText(
 		IFontStashRenderer renderer,
 		ReadOnlySpan<char> text,
@@ -220,7 +248,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth);
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1);
 
 	/// <summary>
 	/// Draws a span of characters through a custom renderer at a position with no rotation or scaling.
@@ -229,11 +259,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		ReadOnlySpan<char> text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		DrawText(
 			renderer,
@@ -244,7 +278,9 @@ public abstract class SpriteFontBase
 			Vector2.Zero,
 			Vector2.One,
 			SpriteEffects.None,
-			0f);
+			0f,
+			effect,
+			effectAmount);
 	}
 
 	/// <summary>
@@ -259,6 +295,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		string text,
@@ -268,10 +306,12 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -281,14 +321,18 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		string text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color);
+		DrawText(renderer, text.AsSpan(), position, color, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -303,6 +347,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph quads.</param>
 	/// <param name="layerDepth">The layer depth passed to the renderer.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		StringBuilder text,
@@ -312,7 +358,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
@@ -326,11 +374,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer renderer,
 		StringBuilder text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(renderer, text.ToString().AsSpan(), position, color);
@@ -348,6 +400,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public abstract void DrawText(
 		IFontStashRenderer2 renderer,
 		ReadOnlySpan<char> text,
@@ -357,7 +411,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth);
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1);
 
 	/// <summary>
 	/// Draws a span of characters through a vertex-level renderer at a position with no rotation or
@@ -367,11 +423,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		ReadOnlySpan<char> text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		DrawText(
 			renderer,
@@ -382,7 +442,9 @@ public abstract class SpriteFontBase
 			Vector2.Zero,
 			Vector2.One,
 			SpriteEffects.None,
-			0f);
+			0f,
+			effect,
+			effectAmount);
 	}
 
 	/// <summary>
@@ -397,6 +459,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		string text,
@@ -406,10 +470,12 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
+		DrawText(renderer, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -419,14 +485,18 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		string text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
-		DrawText(renderer, text.AsSpan(), position, color);
+		DrawText(renderer, text.AsSpan(), position, color, effect, effectAmount);
 	}
 
 	/// <summary>
@@ -442,6 +512,8 @@ public abstract class SpriteFontBase
 	/// <param name="scale">Horizontal and vertical text scale.</param>
 	/// <param name="effects">Sprite effects applied to glyph texture coordinates.</param>
 	/// <param name="layerDepth">The layer depth written to each vertex Z.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		StringBuilder text,
@@ -451,7 +523,9 @@ public abstract class SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(renderer, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth);
@@ -465,11 +539,15 @@ public abstract class SpriteFontBase
 	/// <param name="text">The text to draw.</param>
 	/// <param name="position">The top-left position of the text block.</param>
 	/// <param name="color">The color mask applied to every glyph.</param>
+	/// <param name="effect">The visual effect to apply.</param>
+	/// <param name="effectAmount">The effect thickness or offset, in layout pixels.</param>
 	public void DrawText(
 		IFontStashRenderer2 renderer,
 		StringBuilder text,
 		Vector2 position,
-		Color color)
+		Color color,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(text);
 		DrawText(renderer, text.ToString().AsSpan(), position, color);

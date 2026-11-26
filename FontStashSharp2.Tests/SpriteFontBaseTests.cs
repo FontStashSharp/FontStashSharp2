@@ -84,6 +84,28 @@ public sealed class SpriteFontBaseTests
 	}
 
 	[Fact]
+	public void EffectArguments_AreForwardedToRendererHook()
+	{
+		var font = new StubFont();
+		var renderer = new StubRenderer();
+
+		font.DrawText(
+			renderer,
+			"alpha",
+			Vector2.Zero,
+			Color.White,
+			effect: TextEffect.Shadow,
+			effectAmount: 3);
+
+		Assert.Equal(TextEffect.Shadow, font.LastEffect);
+		Assert.Equal(3, font.LastEffectAmount);
+
+		font.DrawText((SpriteBatch)null!, "beta", Vector2.Zero, Color.White);
+		Assert.Equal(TextEffect.None, font.LastEffect);
+		Assert.Equal(1, font.LastEffectAmount);
+	}
+
+	[Fact]
 	public void VertexRendererOverloads_DispatchToQuadHook()
 	{
 		var font = new StubFont();
@@ -165,6 +187,10 @@ public sealed class SpriteFontBaseTests
 
 		public float LastLayerDepth { get; private set; }
 
+		public TextEffect LastEffect { get; private set; }
+
+		public int LastEffectAmount { get; private set; }
+
 		public override Vector2 MeasureString(string text)
 		{
 			return new Vector2(10f, LineSpacing);
@@ -189,9 +215,13 @@ public sealed class SpriteFontBaseTests
 			Vector2 origin,
 			Vector2 scale,
 			SpriteEffects effects,
-			float layerDepth)
+			float layerDepth,
+			TextEffect effect,
+			int effectAmount)
 		{
 			LastDrawnText = text.ToString();
+			LastEffect = effect;
+			LastEffectAmount = effectAmount;
 		}
 
 		public override void DrawText(
@@ -203,13 +233,17 @@ public sealed class SpriteFontBaseTests
 			Vector2 origin,
 			Vector2 scale,
 			SpriteEffects effects,
-			float layerDepth)
+			float layerDepth,
+			TextEffect effect,
+			int effectAmount)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
 			LastScale = scale;
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
+			LastEffect = effect;
+			LastEffectAmount = effectAmount;
 		}
 
 		public override void DrawText(
@@ -221,13 +255,17 @@ public sealed class SpriteFontBaseTests
 			Vector2 origin,
 			Vector2 scale,
 			SpriteEffects effects,
-			float layerDepth)
+			float layerDepth,
+			TextEffect effect,
+			int effectAmount)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
 			LastScale = scale;
 			LastEffects = effects;
 			LastLayerDepth = layerDepth;
+			LastEffect = effect;
+			LastEffectAmount = effectAmount;
 		}
 	}
 

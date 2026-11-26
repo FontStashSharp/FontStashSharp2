@@ -151,6 +151,21 @@ internal sealed class OpenTKSampleWindow : GameWindow
 			SpriteEffects.FlipHorizontally,
 			0f);
 
+		body.DrawText(
+			_renderer,
+			"Stroke effect",
+			new Vector2(64f, 500f),
+			Accent,
+			effect: TextEffect.Stroke,
+			effectAmount: 1);
+		body.DrawText(
+			_renderer,
+			"Shadow effect",
+			new Vector2(64f, 560f),
+			Warm,
+			effect: TextEffect.Shadow,
+			effectAmount: 4);
+
 		small.DrawText(
 			_renderer,
 			"Resize the window. Press Esc to exit. --frames <n> runs a bounded smoke test.",

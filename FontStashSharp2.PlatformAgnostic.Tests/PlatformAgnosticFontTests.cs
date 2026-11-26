@@ -184,6 +184,112 @@ public sealed class PlatformAgnosticFontTests
 	}
 
 	[Fact]
+	public void ShadowEffect_DrawsOffsetShadowBeforeText()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"A",
+			new Vector2(20f, 30f),
+			Color.White,
+			effect: TextEffect.Shadow,
+			effectAmount: 2);
+
+		Assert.Equal(2, renderer.Calls.Count);
+		var shadow = renderer.Calls[0];
+		var main = renderer.Calls[1];
+
+		Assert.Equal(main.Position.X + 2f, shadow.Position.X);
+		Assert.Equal(main.Position.Y + 2f, shadow.Position.Y);
+		Assert.Equal(127, shadow.Color.A);
+		Assert.Equal(255, main.Color.A);
+		Assert.Equal(shadow.SourceRectangle, main.SourceRectangle);
+		Assert.Same(shadow.Texture, main.Texture);
+	}
+
+	[Fact]
+	public void StrokeEffect_DrawsEightOffsetsBeforeText()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"A",
+			new Vector2(20f, 30f),
+			Color.White,
+			effect: TextEffect.Stroke,
+			effectAmount: 1);
+
+		Assert.Equal(9, renderer.Calls.Count);
+		var main = renderer.Calls[^1];
+
+		for (var i = 0; i < renderer.Calls.Count - 1; i++)
+		{
+			var effect = renderer.Calls[i];
+			Assert.Equal(main.Color, effect.Color);
+			Assert.InRange(Math.Abs(effect.Position.X - main.Position.X), 0f, 1f);
+			Assert.InRange(Math.Abs(effect.Position.Y - main.Position.Y), 0f, 1f);
+			Assert.NotEqual(main.Position, effect.Position);
+		}
+	}
+
+	[Fact]
+	public void EffectAmountZero_DisablesEffect()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"A",
+			Vector2.Zero,
+			Color.White,
+			effect: TextEffect.Shadow,
+			effectAmount: 0);
+
+		Assert.Single(renderer.Calls);
+	}
+
+	[Fact]
+	public void Effect_RejectsInvalidValues()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		Assert.Throws<ArgumentOutOfRangeException>(
+			() => font.DrawText(renderer, "A", Vector2.Zero, Color.White, effect: TextEffect.Shadow, effectAmount: -1));
+		Assert.Throws<ArgumentOutOfRangeException>(
+			() => font.DrawText(renderer, "A", Vector2.Zero, Color.White, effect: (TextEffect)99));
+	}
+
+	[Fact]
 	public void TextureAtlasFull_FiresOnlyWhenANewPageIsCreated()
 	{
 		var manager = new FakeTextureManager();

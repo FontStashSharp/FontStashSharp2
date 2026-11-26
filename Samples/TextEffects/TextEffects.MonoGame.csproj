@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>TextEffectsSample</RootNamespace>
+    <AssemblyName>TextEffectsSample</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(LatestMonoGameVersion)" />
+    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.MonoGame.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Content\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

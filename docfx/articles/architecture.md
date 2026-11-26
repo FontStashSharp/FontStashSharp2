@@ -138,6 +138,20 @@ contracts and a complete example.
   keeping metrics and kerning. A generation counter makes even font instances removed from the size
   cache re-rasterize on their next draw/preload. Textures returned by `GetTexture` become invalid.
 
+## Text effects
+
+`TextEffect.Stroke` and `TextEffect.Shadow` are draw-time effects. The font first submits the effect
+passes, then the main text pass, so effect pixels never cover later glyphs:
+
+- **Stroke** submits the glyph at every offset in a square ring up to `effectAmount` (8 passes for
+  amount 1). The stroke uses the text color.
+- **Shadow** submits one offset by `(effectAmount, effectAmount)` using a darkened copy with half the
+  text alpha.
+- `effectAmount = 0` is equivalent to `None`; negative values throw.
+
+The fast `SpriteBatch` path is used only when the effect is `None`. Effects reuse the same atlas
+glyphs and layout; they only multiply draw submissions.
+
 ## Lifetime, disposal, and threading
 
 - `FontSystem.Dispose` disposes every atlas page and clears cached fonts. It is idempotent. Further

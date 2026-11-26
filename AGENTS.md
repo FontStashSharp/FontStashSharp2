@@ -27,6 +27,7 @@ dotnet run --project Samples/Benchmark
 dotnet run --project Samples/Benchmark -- --benchmark
 dotnet run --project Samples/Supersampling
 dotnet run --project Samples/CustomRenderer
+dotnet run --project Samples/TextEffects
 dotnet run --project Samples/OpenTK
 dotnet run --project Samples/SilkNet
 dotnet run --project Samples/OpenTK -- --frames 3
@@ -79,6 +80,7 @@ Samples/HelloWorld/         DesktopGL sample and screenshot mode
 Samples/MeasureText/        console sample, no GraphicsDevice
 Samples/Supersampling/      1x/2x/4x atlas comparison at multiple draw scales
 Samples/CustomRenderer/     IFontStashRenderer + IFontStashRenderer2 sample
+Samples/TextEffects/        SpriteBatch TextEffect None/Stroke/Shadow sample
 Samples/OpenTK/             platform-agnostic OpenTK/OpenGL renderer sample
 Samples/SilkNet/            platform-agnostic Silk.NET/OpenGL renderer sample
 Samples/Benchmark/          DrawString benchmark vs runtime-baked SpriteFont
@@ -164,10 +166,14 @@ clear.
 ### Draw-path performance
 
 - `DynamicSpriteFont.DrawText` dispatches to a dedicated default path when rotation is 0, origin is
-  0, scale is 1, effects are None, and layer depth is 0. It caches the current atlas texture across
-  glyphs and uses the four-argument `SpriteBatch.Draw` when `SupersamplingFactor` is 1, or an
-  inverse-scaled draw otherwise. The transformed path keeps per-glyph origin/rotation/scale/effects
-  handling and divides the draw scale by the supersampling factor.
+  0, scale is 1, effects are None, layer depth is 0, and `TextEffect` is `None`. It caches the current
+  atlas texture across glyphs and uses the four-argument `SpriteBatch.Draw` when `SupersamplingFactor`
+  is 1, or an inverse-scaled draw otherwise. The transformed path keeps per-glyph
+  origin/rotation/scale/effects handling and divides the draw scale by the supersampling factor.
+- `TextEffect.Stroke` submits the glyph at every square-ring offset up to `effectAmount`; `Shadow`
+  submits one `(amount, amount)` offset using a darkened, half-alpha text color. Effect passes run
+  before the main pass and are draw-time only (the atlas glyph is unchanged). Keep the `None` fast
+  path.
 - `GlyphCache` keeps ASCII metrics, rendered glyphs, and kerning pairs in fixed arrays (ASCII kerning
   is a lazily filled 128×128 table). Non-ASCII falls back to dictionaries. Do not remove these fast
   paths without running `Samples/Benchmark`.
@@ -176,7 +182,10 @@ clear.
 ### Public API compatibility
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
-  float and Vector2 scale; rotation/origin/effects/layerDepth).
+  float and Vector2 scale; rotation/origin/effects/layerDepth) and must accept the trailing optional
+  `TextEffect effect = TextEffect.None, int effectAmount = 1` pair.
+- `effectAmount` must be non-negative; `0` disables effects. Undefined `TextEffect` values throw.
+  Effect passes run before the main text pass and use the same atlas glyphs.
 - `SpriteFontBase` is the font parameter type. In the MonoGame build its public abstract span-based
   `DrawText` hooks accept a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; the
   platform-agnostic build exposes only the two renderer hooks. `string`/`StringBuilder` and
@@ -201,8 +210,9 @@ windowed platform-agnostic integration samples; both accept `--frames <n>` for a
 `Samples/HelloWorld --screenshot` is the visual integration
 check; `Samples/Benchmark --screenshot` verifies the runtime-baked SpriteFont and benchmark screen;
 `Samples/Supersampling --screenshot` verifies the 1x/2x/4x comparison;
-`Samples/CustomRenderer --screenshot` verifies the custom renderer overloads end-to-end. Keep tests
-deterministic; do not depend on system fonts.
+`Samples/CustomRenderer --screenshot` verifies the custom renderer overloads end-to-end.
+`Samples/TextEffects --screenshot` verifies the draw-time TextEffect passes. Keep tests deterministic;
+do not depend on system fonts.
 
 When adding behavior, add tests for:
 

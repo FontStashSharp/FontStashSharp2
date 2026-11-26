@@ -367,7 +367,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 
@@ -376,18 +378,81 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
+		ValidateTextEffect(effect, effectAmount);
 		EnsureAtlasGeneration();
 
-		if (rotation == 0f
-			&& origin == Vector2.Zero
-			&& scale == Vector2.One
-			&& effects == SpriteEffects.None
-			&& layerDepth == 0f)
+		if (effectAmount == 0)
 		{
-			DrawTextDefault(spriteBatch, text, position, color);
+			effect = TextEffect.None;
+		}
+
+		if (effect == TextEffect.None)
+		{
+			if (rotation == 0f
+				&& origin == Vector2.Zero
+				&& scale == Vector2.One
+				&& effects == SpriteEffects.None
+				&& layerDepth == 0f)
+			{
+				DrawTextDefault(spriteBatch, text, position, color);
+				return;
+			}
+
+			DrawTextCore(
+				spriteBatch,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				Vector2.Zero);
 			return;
 		}
 
+		var effectColor = GetEffectColor(color, effect);
+		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		{
+			DrawTextCore(
+				spriteBatch,
+				text,
+				position,
+				effectColor,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				offset);
+		}
+
+		DrawTextCore(
+			spriteBatch,
+			text,
+			position,
+			color,
+			rotation,
+			origin,
+			scale,
+			effects,
+			layerDepth,
+			Vector2.Zero);
+	}
+
+	private void DrawTextCore(
+		SpriteBatch spriteBatch,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		Vector2 effectOffset)
+	{
 		var device = spriteBatch.GraphicsDevice;
 		var atlas = _fontSystem.GetAtlas(device);
 
@@ -450,6 +515,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					glyphY = blockSize.Y - glyphY - glyphHeight;
 				}
 
+				glyphX += effectOffset.X;
+				glyphY += effectOffset.Y;
+
 				if (glyph.TextureIndex != textureIndex)
 				{
 					texture = _fontSystem.GetTextureOrThrow(glyph.TextureIndex);
@@ -503,7 +571,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -512,8 +582,71 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
+		ValidateTextEffect(effect, effectAmount);
 		EnsureAtlasGeneration();
 
+		if (effectAmount == 0)
+		{
+			effect = TextEffect.None;
+		}
+
+		if (effect == TextEffect.None)
+		{
+			DrawTextCore(
+				renderer,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				Vector2.Zero);
+			return;
+		}
+
+		var effectColor = GetEffectColor(color, effect);
+		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		{
+			DrawTextCore(
+				renderer,
+				text,
+				position,
+				effectColor,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				offset);
+		}
+
+		DrawTextCore(
+			renderer,
+			text,
+			position,
+			color,
+			rotation,
+			origin,
+			scale,
+			effects,
+			layerDepth,
+			Vector2.Zero);
+	}
+
+	private void DrawTextCore(
+		IFontStashRenderer renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		Vector2 effectOffset)
+	{
 		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
 
@@ -575,6 +708,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 					glyphY = blockSize.Y - glyphY - glyphHeight;
 				}
 
+				glyphX += effectOffset.X;
+				glyphY += effectOffset.Y;
+
 				if (glyph.TextureIndex != textureIndex)
 				{
 					texture = _fontSystem.GetTextureOrThrow(glyph.TextureIndex);
@@ -626,7 +762,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		Vector2 origin,
 		Vector2 scale,
 		SpriteEffects effects,
-		float layerDepth)
+		float layerDepth,
+		TextEffect effect = TextEffect.None,
+		int effectAmount = 1)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -635,8 +773,71 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
+		ValidateTextEffect(effect, effectAmount);
 		EnsureAtlasGeneration();
 
+		if (effectAmount == 0)
+		{
+			effect = TextEffect.None;
+		}
+
+		if (effect == TextEffect.None)
+		{
+			DrawTextCore(
+				renderer,
+				text,
+				position,
+				color,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				Vector2.Zero);
+			return;
+		}
+
+		var effectColor = GetEffectColor(color, effect);
+		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
+		{
+			DrawTextCore(
+				renderer,
+				text,
+				position,
+				effectColor,
+				rotation,
+				origin,
+				scale,
+				effects,
+				layerDepth,
+				offset);
+		}
+
+		DrawTextCore(
+			renderer,
+			text,
+			position,
+			color,
+			rotation,
+			origin,
+			scale,
+			effects,
+			layerDepth,
+			Vector2.Zero);
+	}
+
+	private void DrawTextCore(
+		IFontStashRenderer2 renderer,
+		ReadOnlySpan<char> text,
+		Vector2 position,
+		Color color,
+		float rotation,
+		Vector2 origin,
+		Vector2 scale,
+		SpriteEffects effects,
+		float layerDepth,
+		Vector2 effectOffset)
+	{
 		var device = GetDevice(renderer);
 		var atlas = _fontSystem.GetAtlas(device);
 
@@ -699,6 +900,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 				{
 					glyphY = blockSize.Y - glyphY - glyphHeight;
 				}
+
+				glyphX += effectOffset.X;
+				glyphY += effectOffset.Y;
 
 				if (glyph.TextureIndex != textureIndex)
 				{
@@ -877,6 +1081,61 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		if (_atlasGeneration != _fontSystem.AtlasGeneration)
 		{
 			ClearRenderedGlyphs();
+		}
+	}
+
+	private static void ValidateTextEffect(TextEffect effect, int effectAmount)
+	{
+		if (effect is not (TextEffect.None or TextEffect.Stroke or TextEffect.Shadow))
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(effect),
+				effect,
+				"Effect must be None, Stroke, or Shadow.");
+		}
+
+		if (effectAmount < 0)
+		{
+			throw new ArgumentOutOfRangeException(
+				nameof(effectAmount),
+				effectAmount,
+				"Effect amount must be non-negative.");
+		}
+	}
+
+	private static Color GetEffectColor(Color color, TextEffect effect)
+	{
+		return effect == TextEffect.Shadow
+			? new Color(
+				(byte)(color.R / 2),
+				(byte)(color.G / 2),
+				(byte)(color.B / 2),
+				(byte)(color.A / 2))
+			: color;
+	}
+
+	private static IEnumerable<Vector2> EnumerateEffectOffsets(TextEffect effect, int effectAmount)
+	{
+		if (effect == TextEffect.Shadow)
+		{
+			yield return new Vector2(effectAmount, effectAmount);
+			yield break;
+		}
+
+		if (effect != TextEffect.Stroke || effectAmount <= 0)
+		{
+			yield break;
+		}
+
+		for (var y = -effectAmount; y <= effectAmount; y++)
+		{
+			for (var x = -effectAmount; x <= effectAmount; x++)
+			{
+				if (x != 0 || y != 0)
+				{
+					yield return new Vector2(x, y);
+				}
+			}
 		}
 	}
 

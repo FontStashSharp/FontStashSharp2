@@ -135,7 +135,9 @@ font.DrawText(renderer, "Hello, engine!", new Vector2(40f, 40f), Color.White);
 The platform-agnostic build intentionally has no draw methods that take a `SpriteBatch` or graphics
 device. Its `SpriteFontBase.DrawText` overloads accept `IFontStashRenderer` or `IFontStashRenderer2`.
 The usual `string`, `StringBuilder`, rotation, origin, scale, effects, and layer-depth overloads are
-available for both renderer interfaces.
+available for both renderer interfaces. Every draw overload also accepts optional
+`TextEffect effect = TextEffect.None` and `int effectAmount = 1`; stroke and shadow are submitted as
+extra glyph passes to the same renderer.
 
 ## Preloading and device lifetime
 
