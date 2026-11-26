@@ -136,8 +136,8 @@ The platform-agnostic build intentionally has no draw methods that take a `Sprit
 device. Its `SpriteFontBase.DrawText` overloads accept `IFontStashRenderer` or `IFontStashRenderer2`.
 The usual `string`, `StringBuilder`, rotation, origin, scale, effects, and layer-depth overloads are
 available for both renderer interfaces. Every draw overload also accepts optional
-`TextEffect effect = TextEffect.None` and `int effectAmount = 1`; stroke and shadow are submitted as
-extra glyph passes to the same renderer.
+`TextEffect effect = TextEffect.None`, `int effectAmount = 1`, and `Color effectColor = default`
+(defaults to white); stroke and shadow are submitted as extra glyph passes to the same renderer.
 
 ## Preloading and device lifetime
 

@@ -134,11 +134,11 @@ public sealed class TextEffectsGame : Game
 		batch.Draw(_pixel, new Rectangle(56, 124, Width - 112, 1), Line);
 
 		batch.DrawString(section, "EFFECTS", new Vector2(56f, 146f), Accent);
-		DrawEffectRow(batch, label, demo, 176f, "None", "Plain text", Text, TextEffect.None, 0);
-		DrawEffectRow(batch, label, demo, 238f, "Stroke / 1", "Stroke 1 px", Text, TextEffect.Stroke, 1);
-		DrawEffectRow(batch, label, demo, 300f, "Stroke / 2", "Stroke 2 px", Accent, TextEffect.Stroke, 2);
-		DrawEffectRow(batch, label, demo, 362f, "Shadow / 2", "Shadow 2 px", Text, TextEffect.Shadow, 2);
-		DrawEffectRow(batch, label, demo, 424f, "Shadow / 6", "Shadow 6 px", Warm, TextEffect.Shadow, 6);
+		DrawEffectRow(batch, label, demo, 176f, "None", "Plain text", Text, TextEffect.None, 0, Text);
+		DrawEffectRow(batch, label, demo, 238f, "Stroke / 1", "Stroke 1 px", Text, TextEffect.Stroke, 1, Accent);
+		DrawEffectRow(batch, label, demo, 300f, "Stroke / 2", "Stroke 2 px", Accent, TextEffect.Stroke, 2, Text);
+		DrawEffectRow(batch, label, demo, 362f, "Shadow / 2", "Shadow 2 px", Text, TextEffect.Shadow, 2, new Color(80, 90, 120));
+		DrawEffectRow(batch, label, demo, 424f, "Shadow / 6", "Shadow 6 px", Warm, TextEffect.Shadow, 6, new Color(120, 70, 30));
 
 		batch.DrawString(section, "WITH TRANSFORMS", new Vector2(720f, 146f), Accent);
 		batch.Draw(_pixel, new Rectangle(720, 170, Width - 776, 1), Line);
@@ -157,7 +157,8 @@ public sealed class TextEffectsGame : Game
 			SpriteEffects.None,
 			0f,
 			TextEffect.Stroke,
-			2);
+			2,
+			Text);
 
 		var scaledFont = _fontSystem.GetFont(24f);
 		batch.DrawString(
@@ -171,7 +172,8 @@ public sealed class TextEffectsGame : Game
 			SpriteEffects.None,
 			0f,
 			TextEffect.Shadow,
-			3);
+			3,
+			new Color(120, 70, 30));
 
 		batch.DrawString(
 			small,
@@ -191,7 +193,8 @@ public sealed class TextEffectsGame : Game
 			SpriteEffects.FlipHorizontally,
 			0f,
 			TextEffect.Stroke,
-			1);
+			1,
+			Accent);
 
 		var largeFont = _fontSystem.GetFont(58f);
 		batch.DrawString(
@@ -205,7 +208,8 @@ public sealed class TextEffectsGame : Game
 			SpriteEffects.None,
 			0f,
 			TextEffect.Shadow,
-			5);
+			5,
+			new Color(80, 160, 140));
 
 		batch.Draw(_pixel, new Rectangle(56, 590, Width - 112, 1), Line);
 		batch.DrawString(
@@ -219,7 +223,7 @@ public sealed class TextEffectsGame : Game
 		batch.Draw(_pixel, new Rectangle(0, Height - 40, Width, 40), Panel);
 		batch.DrawString(
 			small,
-			"effectAmount is measured in layout pixels; 0 disables the effect.",
+			"effectAmount is in layout pixels; effectColor selects the stroke/shadow color; 0 disables the effect.",
 			new Vector2(56f, Height - 27f),
 			Muted);
 	}
@@ -233,7 +237,8 @@ public sealed class TextEffectsGame : Game
 		string text,
 		Color color,
 		TextEffect effect,
-		int effectAmount)
+		int effectAmount,
+		Color effectColor)
 	{
 		batch.DrawString(labelFont, label, new Vector2(56f, y + 8f), Muted);
 		batch.DrawString(
@@ -242,7 +247,8 @@ public sealed class TextEffectsGame : Game
 			new Vector2(220f, y),
 			color,
 			effect: effect,
-			effectAmount: effectAmount);
+			effectAmount: effectAmount,
+			effectColor: effectColor);
 	}
 
 	private void DrawScreenshotFrame()

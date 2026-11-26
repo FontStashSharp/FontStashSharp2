@@ -102,17 +102,17 @@ Every draw overload accepts optional `TextEffect` and `effectAmount` arguments:
 
 ```csharp
 _spriteBatch.DrawString(_font, "Stroked", new Vector2(40, 120), Color.White,
-    effect: TextEffect.Stroke, effectAmount: 2);
+    effect: TextEffect.Stroke, effectAmount: 2, effectColor: Color.Black);
 
 _spriteBatch.DrawString(_font, "Shadowed", new Vector2(40, 180), Color.White,
-    effect: TextEffect.Shadow, effectAmount: 3);
+    effect: TextEffect.Shadow, effectAmount: 3, effectColor: new Color(80, 90, 120));
 ```
 
 - `Stroke` draws the text at surrounding offsets before the main text, creating an outline.
-- `Shadow` draws a semi-transparent shadow offset down and right before the main text.
+- `Shadow` draws the text offset down and right before the main text.
 - `effectAmount` is the thickness/offset in layout pixels; `0` disables the effect.
-- Effects use the text color; shadows use a darkened, half-alpha copy. Negative amounts and undefined
-  effects throw.
+- `effectColor` selects the stroke/shadow color; the default value selects white.
+- Negative amounts and undefined effects throw.
 
 The same arguments work with `font.DrawText(renderer, ...)`, `font.DrawText(renderer2, ...)`, and
 `SpriteBatch.DrawString`.

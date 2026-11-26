@@ -171,9 +171,9 @@ clear.
   is 1, or an inverse-scaled draw otherwise. The transformed path keeps per-glyph
   origin/rotation/scale/effects handling and divides the draw scale by the supersampling factor.
 - `TextEffect.Stroke` submits the glyph at every square-ring offset up to `effectAmount`; `Shadow`
-  submits one `(amount, amount)` offset using a darkened, half-alpha text color. Effect passes run
-  before the main pass and are draw-time only (the atlas glyph is unchanged). Keep the `None` fast
-  path.
+  submits one `(amount, amount)` offset. Both use `effectColor` (default white; a `default(Color)`
+  argument is normalized to white). Effect passes run before the main pass and are draw-time only
+  (the atlas glyph is unchanged). Keep the `None` fast path.
 - `GlyphCache` keeps ASCII metrics, rendered glyphs, and kerning pairs in fixed arrays (ASCII kerning
   is a lazily filled 128×128 table). Non-ASCII falls back to dictionaries. Do not remove these fast
   paths without running `Samples/Benchmark`.
@@ -183,9 +183,10 @@ clear.
 
 - Draw overload signatures must keep mirroring `SpriteBatch.DrawString` (string and StringBuilder;
   float and Vector2 scale; rotation/origin/effects/layerDepth) and must accept the trailing optional
-  `TextEffect effect = TextEffect.None, int effectAmount = 1` pair.
+  `TextEffect effect = TextEffect.None, int effectAmount = 1, Color effectColor = default` triple.
 - `effectAmount` must be non-negative; `0` disables effects. Undefined `TextEffect` values throw.
   Effect passes run before the main text pass and use the same atlas glyphs.
+- `effectColor` is normalized to white when callers use the default argument.
 - `SpriteFontBase` is the font parameter type. In the MonoGame build its public abstract span-based
   `DrawText` hooks accept a `SpriteBatch`, an `IFontStashRenderer`, or an `IFontStashRenderer2`; the
   platform-agnostic build exposes only the two renderer hooks. `string`/`StringBuilder` and

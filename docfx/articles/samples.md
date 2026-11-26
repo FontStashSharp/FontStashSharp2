@@ -82,7 +82,7 @@ interface contracts and the renderer implementation guide.
 A dedicated `SpriteBatch` sample for the optional draw effect arguments:
 
 - `TextEffect.None`, `TextEffect.Stroke`, and `TextEffect.Shadow`;
-- different `effectAmount` values;
+- different `effectAmount` and `effectColor` values;
 - effects combined with rotation, scaling, and horizontal flipping;
 - every line goes through `SpriteBatch.DrawString`, so it exercises the MonoGame draw path.
 

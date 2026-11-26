@@ -95,10 +95,12 @@ public sealed class SpriteFontBaseTests
 			Vector2.Zero,
 			Color.White,
 			effect: TextEffect.Shadow,
-			effectAmount: 3);
+			effectAmount: 3,
+			effectColor: Color.Red);
 
 		Assert.Equal(TextEffect.Shadow, font.LastEffect);
 		Assert.Equal(3, font.LastEffectAmount);
+		Assert.Equal(Color.Red, font.LastEffectColor);
 
 		font.DrawText((SpriteBatch)null!, "beta", Vector2.Zero, Color.White);
 		Assert.Equal(TextEffect.None, font.LastEffect);
@@ -191,6 +193,8 @@ public sealed class SpriteFontBaseTests
 
 		public int LastEffectAmount { get; private set; }
 
+		public Color LastEffectColor { get; private set; }
+
 		public override Vector2 MeasureString(string text)
 		{
 			return new Vector2(10f, LineSpacing);
@@ -217,11 +221,13 @@ public sealed class SpriteFontBaseTests
 			SpriteEffects effects,
 			float layerDepth,
 			TextEffect effect,
-			int effectAmount)
+			int effectAmount,
+			Color effectColor)
 		{
 			LastDrawnText = text.ToString();
 			LastEffect = effect;
 			LastEffectAmount = effectAmount;
+			LastEffectColor = effectColor;
 		}
 
 		public override void DrawText(
@@ -235,7 +241,8 @@ public sealed class SpriteFontBaseTests
 			SpriteEffects effects,
 			float layerDepth,
 			TextEffect effect,
-			int effectAmount)
+			int effectAmount,
+			Color effectColor)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -244,6 +251,7 @@ public sealed class SpriteFontBaseTests
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
 			LastEffectAmount = effectAmount;
+			LastEffectColor = effectColor;
 		}
 
 		public override void DrawText(
@@ -257,7 +265,8 @@ public sealed class SpriteFontBaseTests
 			SpriteEffects effects,
 			float layerDepth,
 			TextEffect effect,
-			int effectAmount)
+			int effectAmount,
+			Color effectColor)
 		{
 			LastDrawnText = text.ToString();
 			LastRotation = rotation;
@@ -266,6 +275,7 @@ public sealed class SpriteFontBaseTests
 			LastLayerDepth = layerDepth;
 			LastEffect = effect;
 			LastEffectAmount = effectAmount;
+			LastEffectColor = effectColor;
 		}
 	}
 

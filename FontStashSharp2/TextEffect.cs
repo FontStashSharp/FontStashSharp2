@@ -8,9 +8,9 @@ public enum TextEffect
 	/// <summary>Draw the text normally.</summary>
 	None = 0,
 
-	/// <summary>Draw an outline around every glyph using the text color.</summary>
+	/// <summary>Draw an outline around every glyph using <c>effectColor</c>.</summary>
 	Stroke = 1,
 
-	/// <summary>Draw a darkened, half-alpha shadow behind the text.</summary>
+	/// <summary>Draw a shadow behind the text using <c>effectColor</c>.</summary>
 	Shadow = 2,
 }

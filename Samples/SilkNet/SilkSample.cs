@@ -169,14 +169,16 @@ internal sealed class SilkSample : IDisposable
 			new Vector2(64f, 500f),
 			Accent,
 			effect: TextEffect.Stroke,
-			effectAmount: 1);
+			effectAmount: 1,
+			effectColor: Color.White);
 		body.DrawText(
 			renderer,
 			"Shadow effect",
 			new Vector2(64f, 560f),
 			Warm,
 			effect: TextEffect.Shadow,
-			effectAmount: 4);
+			effectAmount: 4,
+			effectColor: new Color(120, 70, 30));
 
 		small.DrawText(
 			renderer,

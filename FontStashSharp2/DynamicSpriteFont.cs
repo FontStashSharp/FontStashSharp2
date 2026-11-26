@@ -369,7 +369,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 
@@ -412,14 +413,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var effectColor = GetEffectColor(color, effect);
+		var passColor = NormalizeEffectColor(effectColor);
 		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
 		{
 			DrawTextCore(
 				spriteBatch,
 				text,
 				position,
-				effectColor,
+				passColor,
 				rotation,
 				origin,
 				scale,
@@ -573,7 +574,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -606,14 +608,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var effectColor = GetEffectColor(color, effect);
+		var passColor = NormalizeEffectColor(effectColor);
 		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
 		{
 			DrawTextCore(
 				renderer,
 				text,
 				position,
-				effectColor,
+				passColor,
 				rotation,
 				origin,
 				scale,
@@ -764,7 +766,8 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(renderer);
 
@@ -797,14 +800,14 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 			return;
 		}
 
-		var effectColor = GetEffectColor(color, effect);
+		var passColor = NormalizeEffectColor(effectColor);
 		foreach (var offset in EnumerateEffectOffsets(effect, effectAmount))
 		{
 			DrawTextCore(
 				renderer,
 				text,
 				position,
-				effectColor,
+				passColor,
 				rotation,
 				origin,
 				scale,
@@ -1103,15 +1106,9 @@ public sealed class DynamicSpriteFont : SpriteFontBase
 		}
 	}
 
-	private static Color GetEffectColor(Color color, TextEffect effect)
+	private static Color NormalizeEffectColor(Color effectColor)
 	{
-		return effect == TextEffect.Shadow
-			? new Color(
-				(byte)(color.R / 2),
-				(byte)(color.G / 2),
-				(byte)(color.B / 2),
-				(byte)(color.A / 2))
-			: color;
+		return effectColor == default ? Color.White : effectColor;
 	}
 
 	private static IEnumerable<Vector2> EnumerateEffectOffsets(TextEffect effect, int effectAmount)

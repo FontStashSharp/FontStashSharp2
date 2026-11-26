@@ -24,13 +24,14 @@ public static class SpriteBatchExtensions
 		Vector2 position,
 		Color color,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 		ArgumentNullException.ThrowIfNull(font);
 		ArgumentNullException.ThrowIfNull(text);
 
-		font.DrawText(spriteBatch, text.AsSpan(), position, color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f, effect, effectAmount);
+		font.DrawText(spriteBatch, text.AsSpan(), position, color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f, effect, effectAmount, effectColor);
 	}
 
 	/// <summary>
@@ -48,9 +49,10 @@ public static class SpriteBatchExtensions
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
-		DrawString(spriteBatch, font, text, position, color, rotation, origin, new Vector2(scale), effects, layerDepth, effect, effectAmount);
+		DrawString(spriteBatch, font, text, position, color, rotation, origin, new Vector2(scale), effects, layerDepth, effect, effectAmount, effectColor);
 	}
 
 	/// <summary>
@@ -68,13 +70,14 @@ public static class SpriteBatchExtensions
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 		ArgumentNullException.ThrowIfNull(font);
 		ArgumentNullException.ThrowIfNull(text);
 
-		font.DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount);
+		font.DrawText(spriteBatch, text.AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount, effectColor);
 	}
 
 	/// <summary>
@@ -87,13 +90,14 @@ public static class SpriteBatchExtensions
 		Vector2 position,
 		Color color,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 		ArgumentNullException.ThrowIfNull(font);
 		ArgumentNullException.ThrowIfNull(text);
 
-		font.DrawText(spriteBatch, text.ToString().AsSpan(), position, color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f, effect, effectAmount);
+		font.DrawText(spriteBatch, text.ToString().AsSpan(), position, color, 0f, Vector2.Zero, Vector2.One, SpriteEffects.None, 0f, effect, effectAmount, effectColor);
 	}
 
 	/// <summary>
@@ -112,7 +116,8 @@ public static class SpriteBatchExtensions
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		DrawString(
 			spriteBatch,
@@ -126,7 +131,8 @@ public static class SpriteBatchExtensions
 			effects,
 			layerDepth,
 			effect,
-			effectAmount);
+			effectAmount,
+			effectColor);
 	}
 
 	/// <summary>
@@ -145,13 +151,14 @@ public static class SpriteBatchExtensions
 		SpriteEffects effects,
 		float layerDepth,
 		TextEffect effect = TextEffect.None,
-		int effectAmount = 1)
+		int effectAmount = 1,
+		Color effectColor = default)
 	{
 		ArgumentNullException.ThrowIfNull(spriteBatch);
 		ArgumentNullException.ThrowIfNull(font);
 		ArgumentNullException.ThrowIfNull(text);
 
-		font.DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount);
+		font.DrawText(spriteBatch, text.ToString().AsSpan(), position, color, rotation, origin, scale, effects, layerDepth, effect, effectAmount, effectColor);
 	}
 }
 #endif

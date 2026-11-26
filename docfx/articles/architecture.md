@@ -144,9 +144,9 @@ contracts and a complete example.
 passes, then the main text pass, so effect pixels never cover later glyphs:
 
 - **Stroke** submits the glyph at every offset in a square ring up to `effectAmount` (8 passes for
-  amount 1). The stroke uses the text color.
-- **Shadow** submits one offset by `(effectAmount, effectAmount)` using a darkened copy with half the
-  text alpha.
+  amount 1). The stroke uses `effectColor`.
+- **Shadow** submits one offset by `(effectAmount, effectAmount)` using `effectColor`.
+- `effectColor` defaults to white. Use a contrasting color for visible outlines or shadows.
 - `effectAmount = 0` is equivalent to `None`; negative values throw.
 
 The fast `SpriteBatch` path is used only when the effect is `None`. Effects reuse the same atlas

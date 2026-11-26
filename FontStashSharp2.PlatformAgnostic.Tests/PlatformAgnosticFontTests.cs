@@ -195,13 +195,16 @@ public sealed class PlatformAgnosticFontTests
 		});
 		var font = fontSystem.GetFont(24f);
 
+		var effectColor = new Color(255, 0, 0);
+
 		font.DrawText(
 			renderer,
 			"A",
 			new Vector2(20f, 30f),
 			Color.White,
 			effect: TextEffect.Shadow,
-			effectAmount: 2);
+			effectAmount: 2,
+			effectColor: effectColor);
 
 		Assert.Equal(2, renderer.Calls.Count);
 		var shadow = renderer.Calls[0];
@@ -209,10 +212,34 @@ public sealed class PlatformAgnosticFontTests
 
 		Assert.Equal(main.Position.X + 2f, shadow.Position.X);
 		Assert.Equal(main.Position.Y + 2f, shadow.Position.Y);
-		Assert.Equal(127, shadow.Color.A);
-		Assert.Equal(255, main.Color.A);
+		Assert.Equal(effectColor, shadow.Color);
+		Assert.Equal(Color.White, main.Color);
 		Assert.Equal(shadow.SourceRectangle, main.SourceRectangle);
 		Assert.Same(shadow.Texture, main.Texture);
+	}
+
+	[Fact]
+	public void EffectColor_DefaultsToWhite()
+	{
+		var manager = new FakeTextureManager();
+		var renderer = new RecordingRenderer(manager);
+
+		using var fontSystem = TestFont.CreateFontSystem(new FontSystemSettings
+		{
+			SupersamplingFactor = 1f,
+		});
+		var font = fontSystem.GetFont(24f);
+
+		font.DrawText(
+			renderer,
+			"A",
+			Vector2.Zero,
+			Color.White,
+			effect: TextEffect.Shadow,
+			effectAmount: 2);
+
+		Assert.Equal(2, renderer.Calls.Count);
+		Assert.Equal(Color.White, renderer.Calls[0].Color);
 	}
 
 	[Fact]
@@ -227,13 +254,16 @@ public sealed class PlatformAgnosticFontTests
 		});
 		var font = fontSystem.GetFont(24f);
 
+		var effectColor = new Color(255, 0, 0);
+
 		font.DrawText(
 			renderer,
 			"A",
 			new Vector2(20f, 30f),
 			Color.White,
 			effect: TextEffect.Stroke,
-			effectAmount: 1);
+			effectAmount: 1,
+			effectColor: effectColor);
 
 		Assert.Equal(9, renderer.Calls.Count);
 		var main = renderer.Calls[^1];
@@ -241,7 +271,7 @@ public sealed class PlatformAgnosticFontTests
 		for (var i = 0; i < renderer.Calls.Count - 1; i++)
 		{
 			var effect = renderer.Calls[i];
-			Assert.Equal(main.Color, effect.Color);
+			Assert.Equal(effectColor, effect.Color);
 			Assert.InRange(Math.Abs(effect.Position.X - main.Position.X), 0f, 1f);
 			Assert.InRange(Math.Abs(effect.Position.Y - main.Position.Y), 0f, 1f);
 			Assert.NotEqual(main.Position, effect.Position);
