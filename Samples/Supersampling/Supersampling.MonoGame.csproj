@@ -9,7 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.csproj" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(LatestMonoGameVersion)" />
+    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.MonoGame.csproj" />
   </ItemGroup>
 
   <ItemGroup>

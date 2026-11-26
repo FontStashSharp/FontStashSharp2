@@ -77,7 +77,7 @@ exception otherwise.
 
 - .NET 8 (`net8.0`)
 - C# 12
-- MonoGame 3.8.6.1
+- MonoGame 3.8.1.303 for the library; samples use 3.8.6.1
 - StbTrueTypeNext 1.0.3
 
 Continue with [Getting started](getting-started.md).

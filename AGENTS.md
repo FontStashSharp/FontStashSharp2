@@ -15,7 +15,7 @@ an independent implementation. Familiar public API shape is fine; internals shou
 ## Build, test, run
 
 ```bash
-dotnet build FontStashSharp2.sln
+dotnet build FontStashSharp2.MonoGame.sln
 dotnet test FontStashSharp2.Tests/FontStashSharp2.Tests.csproj
 dotnet run --project Samples/HelloWorld
 dotnet run --project Samples/MeasureText
@@ -35,6 +35,9 @@ Documentation:
 dotnet tool restore
 dotnet docfx docfx/docfx.json
 ```
+
+The library and tests pin MonoGame 3.8.1.303 through `MonoGameVersion`. Samples use the latest
+MonoGame 3.8.6.1 through `LatestMonoGameVersion`.
 
 The screenshot mode is also a useful end-to-end smoke test on a machine with a graphics device.
 

@@ -231,14 +231,15 @@ fonts.AddFont(symbolsBytes);
 ## Requirements
 
 - .NET 8 (`net8.0`)
-- MonoGame 3.8.6.1 (compiled against DesktopGL; use the matching MonoGame package for your platform)
+- MonoGame 3.8.1.303 for the library (compiled against DesktopGL with `PrivateAssets="All"`; add the
+  MonoGame backend package for your platform). Samples reference latest MonoGame 3.8.6.1.
 - C# 12 or newer
 - StbTrueTypeNext 1.0.3 (restored automatically)
 
 ## Building and testing
 
 ```bash
-dotnet build FontStashSharp2.sln
+dotnet build FontStashSharp2.MonoGame.sln
 dotnet test FontStashSharp2.Tests/FontStashSharp2.Tests.csproj
 ```
 

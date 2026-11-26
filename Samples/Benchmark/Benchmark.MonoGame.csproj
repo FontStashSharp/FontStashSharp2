@@ -3,13 +3,15 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
-    <RootNamespace>HelloWorldSample</RootNamespace>
-    <AssemblyName>HelloWorldSample</AssemblyName>
+    <RootNamespace>BenchmarkSample</RootNamespace>
+    <AssemblyName>BenchmarkSample</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.csproj" />
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(LatestMonoGameVersion)" />
+    <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
+    <ProjectReference Include="..\..\FontStashSharp2\FontStashSharp2.MonoGame.csproj" />
   </ItemGroup>
 
   <ItemGroup>

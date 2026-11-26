@@ -41,7 +41,7 @@ spriteBatch.End();
 
 ## Requirements
 
-.NET 8, C# 12, MonoGame 3.8.6.1, and StbTrueTypeNext 1.0.3.
+.NET 8, C# 12, MonoGame 3.8.1.303, and StbTrueTypeNext 1.0.3.
 
 ## Limitations
 

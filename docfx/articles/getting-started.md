@@ -6,13 +6,13 @@ Add a project reference (or the `FontStashSharp2` NuGet package once published):
 
 ```xml
 <ItemGroup>
-  <ProjectReference Include="..\FontStashSharp2\FontStashSharp2.csproj" />
+  <ProjectReference Include="..\FontStashSharp2\FontStashSharp2.MonoGame.csproj" />
 </ItemGroup>
 ```
 
-The library references `MonoGame.Framework.DesktopGL` so the sample projects are self-contained. The
-MonoGame assembly identity is the same across platform packages; use the MonoGame package appropriate
-for your target.
+The library references `MonoGame.Framework.DesktopGL` 3.8.1.303 with `PrivateAssets="All"`, so it does
+not impose a backend on consumers. Add the MonoGame backend package for your target (DesktopGL,
+WindowsDX, Android, iOS, etc.); the sample projects reference DesktopGL 3.8.6.1 directly.
 
 ## 2. Ship a font with your game
 

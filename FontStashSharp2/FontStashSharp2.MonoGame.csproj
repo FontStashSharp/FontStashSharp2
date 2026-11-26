@@ -17,7 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.6.1" />
+    <!--
+      PrivateAssets=All keeps MonoGame out of the package dependency graph so consumers can choose
+      any compatible MonoGame backend (DesktopGL, WindowsDX, Android, iOS, etc.).
+    -->
+    <PackageReference Include="MonoGame.Framework.DesktopGL" Version="$(MonoGameVersion)" PrivateAssets="All" />
     <PackageReference Include="StbTrueTypeNext" Version="1.0.3" />
   </ItemGroup>
 

@@ -5,7 +5,7 @@
         {
           "src": "../FontStashSharp2",
           "files": [
-            "FontStashSharp2.csproj"
+            "FontStashSharp2.MonoGame.csproj"
           ]
         }
       ],

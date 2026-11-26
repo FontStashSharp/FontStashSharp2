@@ -4,5 +4,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Deterministic>true</Deterministic>
+    <MonoGameVersion>3.8.1.303</MonoGameVersion>
+    <LatestMonoGameVersion>3.8.6.1</LatestMonoGameVersion>
   </PropertyGroup>
 </Project>
